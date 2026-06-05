@@ -1,9 +1,9 @@
 ---
 title: "숙제 3"
 subtitle: "데이터과학 입문"
-author: "원중호"
+author: "장재은"
 date: today
-date-format: "MMMM YYYY"
+date-format: "0615 2026"
 institute: 서울대학교 통계학과
 format:
   html:
@@ -11,11 +11,25 @@ format:
 
 mainfont: "Noto Sans Korean Light"
 ---
-
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE, fig.width=6, fig.height=4, out.width = "70%", fig.align = "center", python.reticulate = TRUE)  
+library(knitr)
+library(reticulate)
+
+knitr::opts_chunk$set(
+  echo = TRUE,
+  eval = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 6,
+  fig.height = 4,
+  out.width = "70%",
+  fig.align = "center",
+  python.reticulate = TRUE
+)
+
 options(knitr.table.format = "html")
-reticulate::use_condaenv(condaenv = "introds", conda = "/opt/homebrew/bin/conda") # for persistency
+#use_python("C:/Users/jaeeu/AppData/Local/Programs/Python/Python314/python.exe", required = TRUE)
+py_config()
 ```
 
 ## 지시사항
@@ -27,12 +41,13 @@ reticulate::use_condaenv(condaenv = "introds", conda = "/opt/homebrew/bin/conda"
 3.  R의 `reticulate` 패키지를 사용하면 하나의 `.qmd` 파일 안에서 R과 Python을 동시에 사용할 수 있다. 이때 다음 문법을 사용하여 두 언어 코드를 탭으로 구분한다.  숙제 `.qmd` 파일은 `reticulate`을 사용하도록 준비되어 있다.
 
 ````
+
 ::: {.panel-tabset}
 
 ## R
 
-```{{r}}
-R code
+```{r}
+
 ```
 
 ## Python
@@ -57,6 +72,76 @@ Python code
 
 #### **늦게 제출된 과제물은 받지 않는다.**
 
+
+::: {.panel-tabset}
+## R
+
+```{r}
+# install.packages("tidyverse")
+# install.packages("mdsr")
+# install.packages("lubridate")
+# install.packages("Lahman")
+# install.packages("googlesheets4")
+# install.packages("babynames")
+# install.packages("rvest")
+library("ggplot2")
+library("tidyverse")
+library("mdsr")
+library("lubridate")
+library("Lahman")
+library(tidyverse)
+library(mdsr)
+library(googlesheets4)
+library(babynames)
+library(rvest)
+library(bench)
+library(NHANES)
+library(patchwork)
+library(mosaicData)
+
+sessionInfo()
+```
+
+## Python
+
+```{python}
+#!pip install session-info
+# !pip install polars
+# !pip install pylahman
+# !pip install pybabynames
+import session_info
+import requests
+import io
+import polars as pl
+import pandas as pd
+import numpy as np
+import pybabynames as bn
+from plotnine import *
+import zipfile
+from datetime import datetime
+from bs4 import BeautifulSoup
+import matplotlib.pyplot as plt
+import patchworklib as pw
+from IPython.display import Image
+from scipy import stats
+from scipy.optimize import curve_fit, least_squares, minimize
+
+import seaborn as sns
+#import sympy as sp
+import os
+from patsy.contrasts import Poly
+
+import pylahman
+from plotnine import *
+import statsmodels
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+
+session_info.show()
+```
+
+
+:::
 # 1부  교과서 연습문제
 
 ## 문제 1-1
@@ -64,6 +149,355 @@ Python code
 1. MDSR 10장 연습문제 10.6.6
 
 ### 답안
+
+Use the NHANES data from the NHANES package to develop a logistic regression model that identifies predictors of current smoking among those 20 or older. (Hint: note that the SmokeNow variable is missing for those who have never smoked: you will need to recode the variable to construct your outcome variable.)
+
+# Choosing candidates for predictors
+
+First, since \textbf{SmokeNow} labels NA for those who have never smoked, I converted
+NA to 0.
+
+Then, I choose the following variables as my potential predictors.
+
+## 7 Candidate variables (with short explanations):  
+
+1. Age — People are more likely to smoke at certain ages than others  
+2. Poverty — More exposure to people who smoke around you  
+3. Marijuana — If yes, less prone to choosing cigarettes over marijuana  
+4. Hard drugs — If yes, less prone to choosing cigarettes over hard drugs  
+5. Gender — Cultural norms may make women less likely to smoke  
+6. Marital status — Less likely to smoke in consideration for their children  
+
+Therefore, say
+
+$$
+\log\left(\frac{p}{1-p}\right) = \beta_0 
++ \beta_1\text{Age} 
++ \beta_2\text{Poverty} 
++ \beta_3\text{Marijuana}_{\text{Yes}} 
++ \beta_4\text{HardDrugs}_{\text{Yes}} 
++ \beta_5\text{Gender}_{\text{female}} 
++ \beta_6\text{MS}_{\text{Married}} 
++ \beta_7\text{MS}_{\text{Divorced}} 
++ \beta_8\text{MS}_{\text{LivePartner}} 
++ \beta_9\text{MS}_{\text{Separated}} 
++ \beta_{10}\text{MS}_{\text{Widowed}}
+$$
+
+where $p = P(\text{SmokeNow} = 1)$ and $\text{MS}$ denotes MaritalStatus,
+with \textbf{NeverMarried} as the reference category.
+
+We test:
+
+$$H_0: \beta_1 = \beta_2 = \cdots = \beta_{10} = 0$$
+
+$$H_1: \text{at least one } \beta_k \neq 0, \quad k = 1, \ldots, 10$$
+
+First, we fit a logistic regression to these variables and proceed to model selection.
+
+# Model Selection
+
+After checking that the null hypothesis is rejected via stepAIC, we further test whether 
+the interaction terms improve model fit:
+
+$$H_0: \text{final model} = \text{base model (no interactions)}$$
+
+$$H_1: \text{at least one interaction term } \beta_k \neq 0$$
+Therefore, we get the final model:
+
+$$
+\begin{aligned}
+\log\left(\frac{p}{1-p}\right)
+=&\ \beta_0
++\beta_1\text{Age}
++\beta_2\text{Poverty}
++\beta_3\text{Marijuana}_{\text{Yes}}
++\beta_4\text{HardDrugs}_{\text{Yes}}
++\beta_5\text{Gender}_{\text{female}} \\
+&+\beta_6\text{MS}_{\text{Divorced}}
++\beta_7(\text{Age}\times\text{MS}_{\text{Divorced}})
++\beta_8(\text{Marijuana}_{\text{Yes}}\times\text{Gender}_{\text{female}}) \\
+&+\beta_9(\text{Age}\times\text{Marijuana}_{\text{Yes}})
++\beta_{10}(\text{Gender}_{\text{female}}\times\text{MS}_{\text{Divorced}})
++\beta_{11}(\text{Gender}_{\text{female}}\times\text{MS}_{\text{Widowed}}) \\
+&+\beta_{12}(\text{Poverty}\times\text{MS}_{\text{Widowed}})
++\beta_{13}(\text{HardDrugs}_{\text{Yes}}\times\text{Gender}_{\text{female}})
++\beta_{14}(\text{Poverty}\times\text{Marijuana}_{\text{Yes}}) \\
+&+\beta_{15}(\text{Poverty}\times\text{Gender}_{\text{female}}).
+\end{aligned}
+$$
+The final model was selected using AIC-based stepwise selection. The retained terms are shown in the output below. The python model additionally included "Live Partner" for Marital status and the interaction term between poverty and married.
+
+The python implementation result is different because it uses a backward-elimination procedure that is different from R's stepAIC().
+
+::: {.panel-tabset}
+
+## R
+
+```{r}
+#mosaic::tally(~ SmokeNow + Smoke100, data = filter(NHANES, Age >= 20))
+write.csv("NHANES.csv")
+
+# Detect if any age is missing table(df$Age, useNA="ifany")
+df_0 <- NHANES |>
+  filter(Age >= 20)
+
+#glimpse(df_0)
+
+# 2) Select variables
+df <- NHANES |>
+  filter(Age >= 20) |>
+  mutate(
+    SmokeNow_new = ifelse(is.na(SmokeNow) | SmokeNow != "Yes", 0, 1),
+    
+    Marijuana = factor(Marijuana, levels = c("No", "Yes")),
+    HardDrugs = factor(HardDrugs, levels = c("No", "Yes")),  
+    Gender = factor(Gender, levels = c("male", "female")),
+    MaritalStatus = factor(MaritalStatus,
+                       levels = c("NeverMarried", "Married", "Divorced", 
+                                  "LivePartner", "Separated", "Widowed")) 
+  ) |>
+  select(SmokeNow_new, Age, Poverty, Marijuana, HardDrugs, 
+        Gender, MaritalStatus) |>
+  drop_na()
+
+##################################
+# BASE MODEL: Logistic regression
+##################################
+is_smoker_glm <- glm(SmokeNow_new ~ ., family = binomial, data = df)
+summary(is_smoker_glm,  cor = F)
+
+#################################
+# MODEL SELECTION
+#################################
+
+# 1) Backward selection for main effects 
+is_smoker_step <- MASS::stepAIC(is_smoker_glm, trace=F)
+#is_smoker_step$anova
+
+# 2) Search for interactions / nonlinear age effect
+is_smoker_step2 <- MASS::stepAIC(is_smoker_glm, ~.^2 +
+                                   I(scale(Age)^2), trace = F)
+#is_smoker_step2$anova
+
+# 3) Find significant coefficients at 0.05 level
+summary(is_smoker_step2)$coefficients |>
+  as.data.frame() |>
+  filter(`Pr(>|z|)` < 0.05)
+```
+
+## Python
+
+```{python}
+df_pd = pd.read_csv("NHANES.csv")
+
+# filter age >=20
+df_0 = (pl.from_pandas(df_pd)
+  .filter(pl.col("Age") >= 20)
+)
+
+# Check what variables are available
+#df_0.head() # in Python
+# Choose variables
+cols = ["SmokeNow_new", "Age", "Poverty",
+        "Marijuana", "HardDrugs", "Gender", "MaritalStatus"]
+df_pd["MaritalStatus"].value_counts(dropna=False)
+smoke_pl = (
+    pl.from_pandas(df_pd)
+    .filter(pl.col("Age") >= 20)
+    .with_columns([
+
+        pl.when(pl.col("SmokeNow") == "Yes").then(1)
+          .otherwise(0)   
+          .alias("SmokeNow_new"),
+          
+        # ---- categorical variables ----
+        pl.when(pl.col("Marijuana").is_in(["No", "Yes"]))
+          .then(pl.col("Marijuana"))
+          .otherwise(None)
+          .cast(pl.Enum(["No", "Yes"])),          
+        
+        pl.when(pl.col("HardDrugs").is_in(["No", "Yes"]))
+          .then(pl.col("HardDrugs"))
+          .otherwise(None)
+          .cast(pl.Enum(["No", "Yes"])),         
+        
+        pl.when(pl.col("Gender").is_in(["female", "male"]))
+          .then(pl.col("Gender"))
+          .otherwise(None)
+          .cast(pl.Enum(["male", "female"])),    
+        
+        pl.when(pl.col("MaritalStatus").is_in([
+            "NeverMarried",
+            "Married",
+            "Divorced",
+            "LivePartner",
+            "Separated",
+            "Widowed"
+        ]))
+        .then(pl.col("MaritalStatus"))
+        .otherwise(None)
+        .cast(pl.Enum([
+            "NeverMarried",
+            "Married",
+            "Divorced",
+            "LivePartner",
+            "Separated",
+            "Widowed"
+        ]))
+        .alias("MaritalStatus")
+    ])
+    .select(cols)
+    .drop_nulls()
+)
+#smoke_pl.shape
+
+features = [c for c in smoke_pl.columns if c != "SmokeNow_new"]
+formula = f"SmokeNow_new ~ {' + '.join(features)}"
+#print(formula)
+
+##################################
+# BASE MODEL: Logistic regression
+##################################
+is_smoker_glm = smf.glm(
+    formula = formula,
+    data = smoke_pl.to_pandas(),
+    family=sm.families.Binomial()
+).fit()
+
+# (pd.DataFrame({
+#     'coef': is_smoker_glm.params,
+#     'pvalue': is_smoker_glm.pvalues
+# })
+# .query('pvalue < 0.05')
+# )
+
+
+#################################
+# MODEL SELECTION
+#################################
+# 1) Backward AIC step for main effects
+# 2) Check for interaction effects
+# 3) Find coefficients significant at 0.05 level
+
+# # Matching I(scale(Age)^2)
+df = smoke_pl.to_pandas().copy()
+
+df["Age_scaled_sq"] = (
+    (df["Age"] - df["Age"].mean())
+    / df["Age"].std(ddof=1)
+) ** 2
+
+
+
+def backward_AIC(feature_or_formula, data, family):
+
+    if isinstance(feature_or_formula, str):
+        lhs, rhs = feature_or_formula.split("~")
+
+        current_features = [
+            term.strip()
+            for term in rhs.split("+")
+        ]
+
+    else:
+        current_features = feature_or_formula.copy()
+
+    anova_log = []
+
+    while True:
+
+        current_formula = (
+            f"SmokeNow_new ~ {'+'.join(current_features)}"
+        )
+
+        current_aic = smf.glm(
+            current_formula,
+            data=data,
+            family=family
+        ).fit().aic
+
+        best_aic = current_aic
+        worst_feature = None
+
+        for feature in current_features:
+
+            reduced = [
+                f for f in current_features
+                if f != feature
+            ]
+
+            reduced_formula = (
+                f"SmokeNow_new ~ {'+'.join(reduced)}"
+            )
+
+            reduced_aic = smf.glm(
+                reduced_formula,
+                data=data,
+                family=family
+            ).fit().aic
+
+            if reduced_aic < best_aic:
+                best_aic = reduced_aic
+                worst_feature = feature
+
+        if worst_feature is None:
+            break
+
+        anova_log.append({
+            "Removed": worst_feature,
+            "AIC": best_aic
+        })
+
+        current_features.remove(worst_feature)
+
+    final_model = smf.glm(
+        f"SmokeNow_new ~ {'+'.join(current_features)}",
+        data=data,
+        family=family
+    ).fit()
+
+    final_model.anova_log = anova_log
+
+    return final_model
+
+# 1) Backward AIC step for main effect
+formula1 = """
+SmokeNow_new ~
+Age + Poverty +
+Marijuana + HardDrugs +
+Gender + MaritalStatus
+"""
+is_smoker_step = backward_AIC(
+    formula1,
+    data=df,
+    family=sm.families.Binomial()
+)
+#print(is_smoker_step.anova_log)
+# 
+# # 2) Check for interaction effects
+# formula2 = """
+# SmokeNow_new ~
+# (Age + Poverty +
+#  Marijuana + HardDrugs +
+#  Gender + MaritalStatus)**2
+# + Age_scaled_sq
+# """
+# 
+# is_smoker_step2 = backward_AIC(
+#     formula2,
+#     data=df,
+#     family=sm.families.Binomial()
+# )
+# #print(is_smoker_step2.anova_log)
+# (pd.DataFrame({
+#     "coef": is_smoker_step2.params,
+#     "pvalue": is_smoker_step2.pvalues
+# })
+# .query("pvalue < 0.05"))
+
+```
+:::
 
 
 # 2부  데이터 분석 실무
@@ -77,34 +511,313 @@ Python code
 ## 문제 2-1
 
 Lahman Package의 `Teams` 데이터프레임에서 코로나 시즌인 2020년을 제외한 2010년부터 2025년 사이의 데이터를 이용하여 다음 질문에 답하라. 
+   
 
 1.  MDSR Chapter 7 Iteration 에서 배운 Bill James의 공식을 변형한 다음 모형을 데이터에 적합하고, 모수 $k$의 점추정치와 신뢰구간을 구하라.
-$$
-  WPct = \frac{RS^k}{S^k+RA^k} = \frac{1}{1+(RA/RS)^k}
-$$
-
 2.  회귀계수 $\beta_1$이 위 모형의 $k$와 거의 같은 의미를 가지는 로지스틱 회귀 모형을 세우고 이를 데이터에 적합하라. 모수와 점추정치와 신뢰구간을 구하고 이를 1항의 결과와 비교하라. 
 
     *주의*: 절편이 없는 모형을 적합해야 함.
     *힌트 1*. 로짓은 $\log〖WPct/(1-WPct)$로 계산됨.
     *힌트 2*. 로짓의 역함수인 sigmoid는 $\frac{1}{1+e^{-x}}$로 계산됨.
-
-3.  2항의 모형 적합 결과에 대한 다음 세가지 진단 중 최소 두가지 이상을 수행하여 모형적합이 잘 되었는지 확인하라.
+    
+3. 2항의 모형 적합 결과에 대한 다음 세가지 진단 중 최소 두가지 이상을 수행하여 모형적합이 잘 되었는지 확인하라.
 
     i.  Residual Deviance에 대한 해석 (카이제곱 분포와 비교) 
 	  ii. Deviance residuals vs linear predictors ($\eta$) 산점도 
 	  iii.  관측된 WPct와 모형에서 예측하는 WPct를 산점도 그래프로 비교
+	  
+4. `WPct`를 반응변수로, `log(RA)`와 `log(RS)`를 설명변수로 하는 절편이 없는 로지스틱선형회귀 모형을 적합하고 회귀계수들의 추정 결과를 a와 b항의 결과와 비교하라. (유사한 모형을 얻는지 여부 등)
 
-4.  `WPct`를 반응변수로, `log(RA)`와 `log(RS)`를 설명변수로 하는 절편이 없는 로지스틱선형회귀 모형을 적합하고 회귀계수들의 추정 결과를 a와 b항의 결과와 비교하라. (유사한 모형을 얻는지 여부 등)
 
 
 ### 답안
+
+# 1. 
+
+The estimate I get is $k=1.753$, which is much smaller than $k=2$ from Bill James' formula. The confidence interval is $(1.695, 1.811)$.
+
+::: {.panel-tabset}
+
+## R
+
+```{r}
+#glimpse(Teams)
+
+exp_wpct <- function(x, k) { 
+  return(1/(1 + (1/x)^k))
+}
+
+TeamRuns <- Teams %>% 
+  filter(2010 <= yearID &  yearID <= 2025 & yearID !=2020 )%>%
+  rename(RS = R) %>% 
+  mutate(WPct = W / (W + L), run_ratio = RS/RA) %>%
+  select(yearID, teamID, lgID, WPct, run_ratio, G, RS, RA)
+
+# Fit
+fit <- nls(formula = WPct ~ exp_wpct(run_ratio, k),
+           data = TeamRuns,
+           start = list(k=2))
+
+summary(fit)
+confint(fit)
+```
+
+## Python
+
+```{python}
+TeamRuns = (
+    pl.from_pandas(pylahman.Teams())
+    .filter(
+        (pl.col("yearID") >= 2010) &
+        (pl.col("yearID") <= 2025) &
+        (pl.col("yearID") != 2020)
+    )
+    .rename({"R": "RS"})  
+    .with_columns(
+        (pl.col("W")/(pl.col("W") + pl.col("L"))).alias("WPct"),
+        (pl.col("RS")/(pl.col("RA"))).alias("run_ratio")
+    )
+    .select(["yearID", "teamID", "lgID", "WPct", "run_ratio", "G", "RS", "RA"])
+)
+
+df = TeamRuns.to_pandas()
+def exp_wpct(x, k):
+    return 1 / (1 + (1/x)**k)
+popt, pcov = curve_fit(
+    exp_wpct,
+    xdata=df["run_ratio"],
+    ydata=df["WPct"],
+    p0=[2]  # start = list(k=2)
+)
+
+k_hat = popt[0]
+se_k = np.sqrt(np.diag(pcov))[0]
+lower = k_hat - 1.96 * se_k
+upper = k_hat + 1.96 * se_k
+
+print("Estimated k =", k_hat)
+print(f"95% CI: ({lower:.4f}, {upper:.4f})")
+
+```
+
+:::
+
+# 2. 
+
+$$
+WPct = \frac{1}{1+e^{-x}}
+$$
+Our model is 
+$$
+\log(\frac{WPct}{1+WPct}) = \beta_1 \cdot x
+$$
+What could $x$ be? Since
+$$
+\frac{1}{1+(RA/RS)^k} =  \frac{1}{1+e^{-x}},
+$$
+$$
+x = k \cdot \log(run\_ratio)
+$$
+Hence, our final model is
+$$
+\log(\frac{WPct}{1+WPct}) = \beta_1 \cdot \log(run\_ratio)
+$$
+The estimate I get is $k=1.753$, which is much smaller than $k=2$ from Bill James' formula. The confidence interval is $(1.664, 1.842)$. The estimate is the same, but the confidence interval is wider for the logistic regression. Both are less than $k=2$, the Bill James' estiamte.
+
+::: {.panel-tabset}
+
+## R
+
+```{r}
+fit2 <- glm(WPct ~ log(run_ratio) -1,
+            family = binomial,
+            weights = G,
+            data = TeamRuns)
+
+summary(fit2)
+confint(fit2)
+```
+
+## Python
+
+```{python}
+fit2 = smf.glm(
+    formula="WPct ~ np.log(run_ratio) - 1",
+    data=df,
+    family=sm.families.Binomial(),
+    freq_weights=df["G"]
+).fit()
+
+print(fit2.summary())
+```
+
+:::
+
+# 3.  
+	  
+
+i. From the R output I get deviance of 180.26 with 449 degrees of freedom. the p-value 
+is near 1 or much greater than 0.05, which means there is not enough evidence
+to reject our model. However, the residual deviance is much smaller
+than the degrees of freedom, meaning there could be under-dispersion.
+
+ii. Also, from the deviance scatter plot, the residuals are centered around 0
+randomly scattered with approximately linear relationship. therefore, 
+there is no strong evidence of nonlinearity, heteroscedasticity, or model misspecification,
+suggesting that our model is a good fit.
+
+::: {.panel-tabset}
+
+## R
+
+```{r}
+# i. Residual deviance: 180.26 on 449 df found from part 2
+pchisq(180.2, df=449, lower.tail=FALSE)
+
+# ii. Deviance residuals vs. linear predictors 
+plot(predict(fit2, type = "link"),
+     residuals(fit2, type = "deviance"))
+abline(h=0, col="red", lty=1)
+```
+
+## Python
+
+```{python}
+from scipy.stats import chi2
+
+p_value = chi2.sf(180.2, df=449)  
+print(p_value)
+
+linear_predictor = fit2.predict(linear=True)
+deviance_residuals = fit2.resid_deviance
+
+plt.figure(figsize=(6,4))
+plt.scatter(linear_predictor, deviance_residuals)
+plt.axhline(y=0)
+plt.xlabel("Linear Predictor")
+plt.ylabel("Deviance Residual")
+plt.title("Deviance Residuals vs Linear Predictor")
+plt.show()
+```
+
+:::
+
+# 4. 
+
+Fitting a no-intercept logistic regression with log(RS) and log(RA) as separate predictors yields $\hat{\beta}_1 = 1.753$ and $\hat{\beta}_1=1.753$ and $\hat{\beta}_2 = -1.754$ This is consistent with Parts 1 and 2, confirming that all three approaches produce essentially the same estimate of $k \approx 1.753$.
+
+::: {.panel-tabset}
+
+## R
+
+```{r}
+fit3 <- glm(WPct ~ log(RS) + log(RA) - 1,
+            family = binomial,
+            weights = G,
+            data = TeamRuns)
+summary(fit3)
+```
+
+## Python
+
+```{python}
+fit3 = smf.glm(
+  formula = "WPct ~ np.log(RS) + np.log(RA) -1",
+  data = df,
+  family = sm.families.Binomial(),
+  freq_weights=df["G"]
+).fit()
+
+print(fit3.summary())
+```
+
+:::
 
 ## 문제 2-2
 
 `WPct`를 반응변수로, `logRS`, `logRA`, `H`, `X2B`, `X3B`, `HR`, `BB`, `SO`, `CS`, `HBP`, `SF`, `ERA`, `CG`, `SHO`, `IPouts`, `HA`, `HRA`, `BBA`, `SOA`, `E`, `DP`, `FP`, `SV`를 설명변수로 하는 절편항이 있는 로지스틱 회귀 모형을 적합하고 AIC를 기준으로 하는 단계별(stepwise) 변수선택을 적용하라. 변수선택 후 남은 변수들을 모두 모형에 남길지 일부를 제거할지 다시 판단하라. 최종적으로 선택된 모형을 문제1의 모형과 비교하라. 
 
 ### 답안
+
+::: {.panel-tabset}
+
+## R
+
+```{r}
+TeamRuns2 <- Teams %>%
+  filter(2010 <= yearID & yearID <= 2025 & yearID != 2020) %>%
+  rename(RS = R) %>%
+  mutate(WPct = W / (W + L),
+         run_ratio = RS/RA,
+         logRS = log(RS),
+         logRA = log(RA)) %>%
+  select(WPct, run_ratio, W, G,
+         logRS, logRA, H, X2B, X3B, HR, BB, SO, 
+         CS, HBP, SF, ERA, CG, SHO, IPouts, HA, 
+         HRA, BBA, SOA, E, DP, FP, SV)
+
+fit_full <- glm(WPct ~.,
+                family = binomial,
+                weights = G,
+                data = TeamRuns2)
+summary(fit_full)
+```
+
+## Python
+
+```{python}
+TeamRuns2 = (
+    pl.from_pandas(pylahman.Teams())
+    .rename({
+        "R": "RS",
+        "2B": "X2B",
+        "3B": "X3B",
+        "IPOuts": "IPouts"
+    })
+    .filter(
+        (pl.col("yearID") >= 2010) &
+        (pl.col("yearID") <= 2025) &
+        (pl.col("yearID") != 2020)
+    )
+    .with_columns(
+        (pl.col("W") / (pl.col("W") + pl.col("L"))).alias("WPct"),
+        pl.col("RS").log().alias("logRS"),
+        pl.col("RA").log().alias("logRA")
+    )
+    .select([
+        "WPct",
+        "logRS", "logRA",
+        "H", "X2B", "X3B", "HR", "BB", "SO",
+        "CS", "HBP", "SF",
+        "ERA", "CG", "SHO", "IPouts",
+        "HA", "HRA", "BBA", "SOA",
+        "E", "DP", "FP", "SV",
+        "G"
+    ])
+)
+print(TeamRuns2.columns)
+
+df2 = TeamRuns2.to_pandas()
+formula_full = """
+WPct ~ logRS + logRA +
+H + X2B + X3B + HR + BB + SO +
+CS + HBP + SF +
+ERA + CG + SHO + IPouts +
+HA + HRA + BBA + SOA +
+E + DP + FP + SV
+"""
+print(formula_full)
+fit_full = smf.glm(
+  formula = formula_full,
+  data=df2,
+  family=sm.families.Binomial(),
+  freq_weights=df2["G"]
+).fit()
+
+print(fit_full.summary())
+```
+
+:::
 
 ## 문제 2-3
 
@@ -113,6 +826,60 @@ $$
 2.  `W`를 반응변수로 하여 문제2의 분석을 실시하되 음이항 회귀모형을 사용하라. 모형 적합 시 오류가 발생하면 이유를 파악해서 보고하라.
 
 ### 답안
+
+# 1. 
+
+We use the model 
+$$
+\log(E[W]) = \log(G) +\beta_1 \cdot \log(run_ratio)
+$$
+
+::: {.panel-tabset}
+
+## R
+
+```{r}
+fit3 <- glm(W~ log(run_ratio) -1 + offset(log(G)),
+            family = poisson(),
+            data = TeamRuns2)
+
+summary(fit3)
+confint(fit3)
+
+```
+
+## Python
+
+```{python}
+
+```
+
+:::
+
+# 2. 
+
+
+::: {.panel-tabset}
+
+## R
+
+```{r}
+library(MASS)
+
+fit_nb <- glm.nb(W ~ log(run_ratio) - 1 + offset(log(G)),
+                 data = TeamRuns2)
+summary(fit3)
+confint(fit3)
+
+```
+
+## Python
+
+```{python}
+
+```
+
+:::
 
 ## 문제 2-4
 
@@ -126,6 +893,64 @@ $$
 
 
 ### 답안
+
+The estimated difference between eras, $\hat{g}=0.162 (95% CI: 0.015, 0.308)$, is statistically significant at the $5\%$ level $(p=0.031)$, and its confidence interval excludes 0, indicating that $k$ changed meaningfully between the two periods. 
+
+The steroid era (1994–2005) has a notably higher $\hat{k} + \hat{g} = 1.753 + 0.162 = 1.915$ compared to the modern era (2010–2025) where $\hat{k} \approx 1.753$, suggesting that the run ratio (RA/RS) was a stronger predictor of WPct during the steroid era. 
+
+::: {.panel-tabset}
+
+## R
+
+```{r}
+TeamRuns4 <- Teams %>%
+  filter((yearID >=1994 & yearID <=2005 | yearID>=2010 & yearID<=2025) & yearID != 2020) %>%
+  rename(RS = R) %>%
+  mutate(WPct = W / (W + L),
+         run_ratio = RS/RA,
+         steroid = ifelse(yearID >=1994 & yearID <=2005, 1, 0))  # indicator variable
+fit_g <- glm(WPct ~ log(run_ratio) + I(steroid * log(run_ratio)) - 1,
+             family = binomial,
+             weights = G,
+             data = TeamRuns4)
+summary(fit_g)
+confint(fit_g)
+```
+
+## Python
+
+```{python}
+df4 = (
+    pl.from_pandas(pylahman.Teams())
+    .filter(
+        (
+            ((pl.col("yearID") >= 1994) & (pl.col("yearID") <= 2005)) |
+            ((pl.col("yearID") >= 2010) & (pl.col("yearID") <= 2025))
+        )
+        & (pl.col("yearID") != 2020)
+    )
+    .rename({"R": "RS"})
+    .with_columns([
+        (pl.col("W") / (pl.col("W") + pl.col("L"))).alias("WPct"),
+        (pl.col("RS") / pl.col("RA")).alias("run_ratio"),
+        (pl.col("yearID").is_between(1994, 2005)).cast(pl.Int8).alias("steroid")
+    ])
+    .select(["WPct", "run_ratio", "G", "steroid"])
+)
+TeamRuns4 = df4.to_pandas()
+TeamRuns4["log_run_ratio"] = np.log(TeamRuns4["run_ratio"])
+TeamRuns4["interaction"] = TeamRuns4["steroid"] * TeamRuns4["log_run_ratio"]
+
+fit_g = smf.glm(
+    formula="WPct ~ log_run_ratio + interaction - 1",
+    data=TeamRuns4,
+    family=sm.families.Binomial(),
+    freq_weights=TeamRuns4["G"]
+).fit()
+print(fit_g.summary())
+```
+
+:::
 
 # 3부  데이터 분석 기술
 
@@ -168,23 +993,12 @@ RUN R -e "install.packages(c('reticulate', 'remotes', 'IRkernel'))" && \
 # 6. reticulate가 사용할 Python 경로 고정 (환경 변수)
 ENV RETICULATE_PYTHON=/opt/conda/envs/r-reticulate/bin/python
 
-# 7. Binder용 jovyan 유저 생성
-ENV NB_USER=jovyan
-ENV NB_UID=1000
-RUN usermod -l ${NB_USER} rstudio && \
-    usermod -d /home/${NB_USER} -m ${NB_USER} && \
-    chown -R ${NB_USER} /opt/conda /home/${NB_USER}
-    
-# 8. 노트북 파일 복사
-COPY _site/hw03.ipynb /home/${NB_USER}/hw03.ipynb
-RUN chown ${NB_USER}:users /home/${NB_USER}/hw03.ipynb
+# 7. (선택) Binder 사용자를 위한 권한 설정
+# Binder는 보통 'jovyan' 유저 권한으로 실행
+RUN chown -R ${NB_USER:-root} /opt/conda
 
-USER ${NB_USER}
-WORKDIR /home/${NB_USER}
-
-# Binder가 기대하는 포트
-EXPOSE 8888
-
+# 기본 실행 경로 설정
+WORKDIR /home/rstudio
 ```
 
 ### 답안
@@ -228,12 +1042,11 @@ GitHub Page를 사용하여 저장소를 웹페이지로 활용하는 부분은 
 이 숙제의 상세 분석 결과는 아래 링크에서 확인하실 수 있습니다.
 
 * [분석 리포트 (HTML)](./hw03.html) 
-* [주피터 노트북 (ipynb)](https://mybinder.org/v2/gh/<유저명>/snu-stat/<repo명>/gh-pages?filepath=hw03.ipynb
+* [주피터 노트북 (ipynb)](https://mybinder.org/v2/ghcr/<유저명>/my-r-env/latest?filepath=hw03.ipynb
 ```
 
-여기서 `<유저명>`은 제출자의 GitHub 유저 아이디이며, `<repo명>`은 hw3-로 시작하는 제출자의 repository 이름이다.
+여기서 `<유저명>`은 제출자의 GitHub 유저 아이디이다.
 
 작업을 GitHub 원격 저장소로 push한 후 숙제 2 문제 3-3의 3, 4번 과정을 반복하라.
 
 ### 답안
-
