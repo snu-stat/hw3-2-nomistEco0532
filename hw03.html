@@ -4388,7 +4388,7 @@ statsmodels         0.14.6
 Python 3.10.20 | packaged by conda-forge | (main, Mar  5 2026, 16:53:43) [GCC 14.3.0]
 Linux-6.17.0-1015-azure-x86_64-with-glibc2.39
 -----
-Session information updated at 2026-06-06 15:29</code></pre>
+Session information updated at 2026-06-06 16:16</code></pre>
 </div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
@@ -5020,7 +5020,7 @@ Model Family:                Binomial   Df Model:                            0
 Link Function:                  Logit   Scale:                          1.0000
 Method:                          IRLS   Log-Likelihood:                -30374.
 Date:                Sat, 06 Jun 2026   Deviance:                       165.68
-Time:                        15:30:01   Pearson chi2:                     165.
+Time:                        16:16:13   Pearson chi2:                     165.
 No. Iterations:                     4   Pseudo R-squ. (CS):             0.9672
 Covariance Type:            nonrobust                                         
 =====================================================================================
@@ -5149,7 +5149,7 @@ Model Family:                Binomial   Df Model:                            1
 Link Function:                  Logit   Scale:                          1.0000
 Method:                          IRLS   Log-Likelihood:                -30374.
 Date:                Sat, 06 Jun 2026   Deviance:                       165.58
-Time:                        15:30:01   Pearson chi2:                     165.
+Time:                        16:16:13   Pearson chi2:                     165.
 No. Iterations:                     4   Pseudo R-squ. (CS):             0.9672
 Covariance Type:            nonrobust                                         
 ==============================================================================
@@ -5308,7 +5308,7 @@ Model Family:                Binomial   Df Model:                           23
 Link Function:                  Logit   Scale:                          1.0000
 Method:                          IRLS   Log-Likelihood:                -30336.
 Date:                Sat, 06 Jun 2026   Deviance:                       89.524
-Time:                        15:30:02   Pearson chi2:                     89.5
+Time:                        16:16:14   Pearson chi2:                     89.5
 No. Iterations:                     4   Pseudo R-squ. (CS):             0.9726
 Covariance Type:            nonrobust                                         
 ==============================================================================
@@ -5544,7 +5544,7 @@ Model Family:                Binomial   Df Model:                            1
 Link Function:                  Logit   Scale:                          1.0000
 Method:                          IRLS   Log-Likelihood:                -55030.
 Date:                Sat, 06 Jun 2026   Deviance:                       301.14
-Time:                        15:30:02   Pearson chi2:                     301.
+Time:                        16:16:14   Pearson chi2:                     301.
 No. Iterations:                     4   Pseudo R-squ. (CS):             0.9612
 Covariance Type:            nonrobust                                         
 =================================================================================
@@ -5567,8 +5567,7 @@ interaction       0.1540      0.076      2.035      0.042       0.006       0.30
 <section id="문제-3-1.-dockerfile-설정" class="level2">
 <h2 class="anchored" data-anchor-id="문제-3-1.-dockerfile-설정">문제 3-1. Dockerfile 설정</h2>
 <p>로컬 저장소 최상위 디렉토리에 아래와 같은 <code>Dockerfile</code> 파일을 추가한다.</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb61"><pre class="sourceCode yml code-with-copy"><code class="sourceCode yaml"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. 기반 이미지 설정</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb61"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. 기반 이미지 설정</span></span>
 <span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a><span class="at">FROM rocker/tidyverse:4.4.0</span></span>
 <span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. 시스템 의존성 설치 (ImageMagick 포함)</span></span>
@@ -5606,7 +5605,6 @@ interaction       0.1540      0.076      2.035      0.042       0.006       0.30
 <span id="cb61-36"><a href="#cb61-36" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb61-37"><a href="#cb61-37" aria-hidden="true" tabindex="-1"></a><span class="co"># 기본 실행 경로 설정</span></span>
 <span id="cb61-38"><a href="#cb61-38" aria-hidden="true" tabindex="-1"></a><span class="at">WORKDIR /home/rstudio</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
 <section id="답안-5" class="level3">
 <h3 class="anchored" data-anchor-id="답안-5">답안</h3>
 </section>
@@ -5614,8 +5612,7 @@ interaction       0.1540      0.076      2.035      0.042       0.006       0.30
 <section id="문제-3-2.-github-actions-워크플로우-수정" class="level2">
 <h2 class="anchored" data-anchor-id="문제-3-2.-github-actions-워크플로우-수정">문제 3-2. GitHub Actions 워크플로우 수정</h2>
 <p>숙제 2에서 만들었던 <code>publish.yml</code>을 수정하여 기존의 배포 단계 끝에 Docker 컨테이너 이미지를 빌드하고 Github Container Registry (GHCR)에 푸시하는 단계를 추가한다.</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb62"><pre class="sourceCode yml code-with-copy"><code class="sourceCode yaml"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ... (기존 Quarto Render 단계 이후)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb62"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ... (기존 Quarto Render 단계 이후)</span></span>
 <span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Log in to GitHub Container Registry</span></span>
 <span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> docker/login-action@v3</span></span>
@@ -5630,7 +5627,6 @@ interaction       0.1540      0.076      2.035      0.042       0.006       0.30
 <span id="cb62-13"><a href="#cb62-13" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">context</span><span class="kw">:</span><span class="at"> .</span></span>
 <span id="cb62-14"><a href="#cb62-14" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">push</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb62-15"><a href="#cb62-15" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">tags</span><span class="kw">:</span><span class="at"> ghcr.io/${{ github.repository_owner }}/my-r-env:latest</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
 <section id="답안-6" class="level3">
 <h3 class="anchored" data-anchor-id="답안-6">답안</h3>
 </section>
@@ -5639,8 +5635,7 @@ interaction       0.1540      0.076      2.035      0.042       0.006       0.30
 <h2 class="anchored" data-anchor-id="문제-3-3.-github-pages에-binder-링크-추가">문제 3-3. GitHub Pages에 Binder 링크 추가</h2>
 <p>GitHub Page를 사용하여 저장소를 웹페이지로 활용하는 부분은 숙제 2에서와 같다.</p>
 <p>웹페이지에서 노트북을 내려받는 대신 <a href="mybinder.org">Binder</a> 서비스를 이용하여 온라인으로 노트북을 실행할 수 있도록 위해 <code>README.md</code> 파일을 로컬 저장소 최상위 디렉토리에 다음과 같이 만들자.</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb63"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="fu"># 숙제 3</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb63"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="fu"># 숙제 3</span></span>
 <span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>이름: <span class="co">[</span><span class="ot">아무개</span><span class="co">]</span></span>
 <span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>학번: <span class="co">[</span><span class="ot">나의 학번</span><span class="co">]</span></span>
@@ -5649,7 +5644,6 @@ interaction       0.1540      0.076      2.035      0.042       0.006       0.30
 <span id="cb63-7"><a href="#cb63-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb63-8"><a href="#cb63-8" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span><span class="co">[</span><span class="ot">분석 리포트 (HTML)</span><span class="co">](./hw03.html)</span> </span>
 <span id="cb63-9"><a href="#cb63-9" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span><span class="co">[</span><span class="ot">주피터 노트북 (ipynb)</span><span class="co">]</span>(https://mybinder.org/v2/ghcr/&lt;유저명&gt;/my-r-env/latest?filepath=hw03.ipynb</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
 <p>여기서 <code>&lt;유저명&gt;</code>은 제출자의 GitHub 유저 아이디이다.</p>
 <p>작업을 GitHub 원격 저장소로 push한 후 숙제 2 문제 3-3의 3, 4번 과정을 반복하라.</p>
 <section id="답안-7" class="level3">
