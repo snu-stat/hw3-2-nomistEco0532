@@ -36,7 +36,7 @@ jobs:
         run: |
           conda install -n r-reticulate -c conda-forge -y \
             pip \
-            "expat>=2.7.2" \
+            "expat>=2.7.5" \
             session-info \
             requests \
             polars \
