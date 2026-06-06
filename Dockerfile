@@ -24,6 +24,7 @@ ENV PATH=/opt/conda/bin:$PATH
 RUN conda create -p /opt/conda/envs/r-reticulate -c conda-forge --override-channels python=3.10 -y && \
     conda install -p /opt/conda/envs/r-reticulate -c conda-forge --override-channels -y \
       pip \
+      "expat>=2.7.2" \
       numpy \
       pandas \
       matplotlib \
@@ -42,6 +43,7 @@ RUN conda create -p /opt/conda/envs/r-reticulate -c conda-forge --override-chann
       pybabynames \
       pylahman \
       patchworklib && \
+    /opt/conda/envs/r-reticulate/bin/python -c "import xml.parsers.expat; import pyexpat; print('pyexpat OK')" && \
     /opt/conda/envs/r-reticulate/bin/python -c "import session_info, requests, polars, pandas, numpy, pybabynames, plotnine, bs4, matplotlib, patchworklib, IPython, scipy, seaborn, patsy, pylahman, statsmodels; print('Python packages OK')" && \
     conda clean -afy
 
@@ -63,6 +65,7 @@ RUN R -e "install.packages(c('reticulate', 'remotes', 'IRkernel', 'knitr', 'rmar
 
 # 8. reticulate가 사용할 Python 경로 고정
 ENV RETICULATE_PYTHON=/opt/conda/envs/r-reticulate/bin/python
+ENV LD_LIBRARY_PATH=/opt/conda/envs/r-reticulate/lib:/opt/conda/lib
 
 # 9. Binder 사용자 설정
 # rocker/tidyverse에는 UID 1000의 rstudio 사용자가 이미 있음
