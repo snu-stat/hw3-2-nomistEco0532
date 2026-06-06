@@ -72,9 +72,6 @@ jobs:
         run: |
           cp README.md index.md
 
-            - name: Prepare README as Index
-        run: cp README.md index.md
-
       - name: Render Quarto
         shell: bash -el {0}
         run: |
