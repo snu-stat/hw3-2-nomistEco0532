@@ -34,22 +34,7 @@ RUN /opt/conda/bin/conda install -n base -c conda-forge jupyterlab notebook -y &
         --prefix=/opt/conda --name python3 --display-name "Python (r-reticulate)"
 
 # 6. R 패키지 설치 (reticulate 및 필수 패키지) + R 커널 등록
-RUN R -e "install.packages(c( \
-    'reticulate', \
-    'tidyverse', \
-    'mdsr', \
-    'lubridate', \
-    'Lahman', \
-    'googlesheets4', \
-    'babynames', \
-    'rvest', \
-    'bench', \
-    'NHANES', \
-    'patchwork', \
-    'mosaicData', \
-    'IRkernel', \
-    'remotes' \
-), repos='https://cloud.r-project.org')" && \
+RUN R -e "install.packages(c('reticulate', 'remotes', 'IRkernel', 'knitr', 'rmarkdown', 'tidyverse', 'mdsr', 'lubridate', 'Lahman', 'babynames', 'rvest', 'NHANES', 'patchwork', 'mosaicData', 'bench'), repos='https://cloud.r-project.org')" && \
     R -e "IRkernel::installspec(user = FALSE)"
 
 # 7. reticulate가 사용할 Python 경로 고정
