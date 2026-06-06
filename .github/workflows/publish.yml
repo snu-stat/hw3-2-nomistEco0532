@@ -30,14 +30,32 @@ jobs:
           channel-priority: strict
           conda-remove-defaults: "true"
 
-      - name: Install Python dependencies
+      - name: Install Python dependencies via Conda
+        shell: bash -l {0}
         run: |
-          conda install -y \
-            numpy pandas matplotlib scipy statsmodels seaborn polars \
-            requests beautifulsoup4 session-info
+          conda install -n r-reticulate -c conda-forge -y \
+            pip \
+            session-info \
+            requests \
+            polars \
+            pandas \
+            numpy \
+            plotnine \
+            beautifulsoup4 \
+            matplotlib \
+            ipython \
+            scipy \
+            seaborn \
+            patsy \
+            statsmodels
 
-          python -c "import numpy, pandas, matplotlib, scipy, statsmodels, seaborn, polars, requests, bs4, session_info; print('Python packages OK')"
+          conda run -n r-reticulate python -m pip install \
+            pybabynames \
+            pylahman \
+            patchworklib
 
+          conda run -n r-reticulate python -c "import session_info, requests, polars, pandas, numpy, pybabynames, plotnine, bs4, matplotlib, patchworklib, IPython, scipy, seaborn, patsy, pylahman, statsmodels; print('Python packages OK')"
+      
       - name: Point reticulate to Conda Python
         run: |
           echo "RETICULATE_PYTHON=$CONDA_PREFIX/bin/python" >> "$GITHUB_ENV"
