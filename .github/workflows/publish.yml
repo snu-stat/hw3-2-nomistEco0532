@@ -120,9 +120,7 @@ jobs:
           "$RETICULATE_PYTHON" -c "import ssl; print(ssl.OPENSSL_VERSION)"
           "$RETICULATE_PYTHON" -c "import xml.parsers.expat; import pyexpat; print('pyexpat OK')"
 
-          quarto render hw03.qmd --to html
-          quarto render hw03.qmd --to ipynb
-          quarto render index.md --to html
+          quarto render 
 
           echo "Rendered files:"
           find _site -maxdepth 2 -type f | sort
