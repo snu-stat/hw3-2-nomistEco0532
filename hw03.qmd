@@ -958,7 +958,7 @@ print(fit_g.summary())
 ## 문제 3-1. Dockerfile 설정
 
 로컬 저장소 최상위 디렉토리에 아래와 같은 `Dockerfile` 파일을 추가한다. 
-```{yml}
+```yaml
 # 1. 기반 이미지 설정
 FROM rocker/tidyverse:4.4.0
 
@@ -1005,7 +1005,7 @@ WORKDIR /home/rstudio
 
 숙제 2에서 만들었던 `publish.yml`을 수정하여 기존의 배포 단계 끝에 Docker 컨테이너 이미지를 빌드하고 Github Container Registry (GHCR)에 푸시하는 단계를 추가한다.
 
-```{yml}
+```yaml
 # ... (기존 Quarto Render 단계 이후)
 
       - name: Log in to GitHub Container Registry
@@ -1031,7 +1031,7 @@ GitHub Page를 사용하여 저장소를 웹페이지로 활용하는 부분은 
 
 웹페이지에서 노트북을 내려받는 대신 [Binder](mybinder.org) 서비스를 이용하여 온라인으로 노트북을 실행할 수 있도록 위해 `README.md` 파일을 로컬 저장소 최상위 디렉토리에 다음과 같이 만들자.
 
-```{markdown}
+```markdown
 # 숙제 3
 
 이름: [아무개]
