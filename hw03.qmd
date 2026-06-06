@@ -85,8 +85,6 @@ Python code
 # install.packages("babynames")
 # install.packages("rvest")
 library("ggplot2")
-library("tidyverse")
-library("mdsr")
 library("lubridate")
 library("Lahman")
 library(tidyverse)
