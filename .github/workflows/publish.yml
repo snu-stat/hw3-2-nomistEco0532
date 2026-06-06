@@ -105,9 +105,14 @@ jobs:
           export CONDA_ENV="$(conda info --base)/envs/r-reticulate"
           export RETICULATE_PYTHON="$CONDA_ENV/bin/python"
           export LD_LIBRARY_PATH="$CONDA_ENV/lib:${LD_LIBRARY_PATH:-}"
+          export LD_PRELOAD="$CONDA_ENV/lib/libexpat.so.1"
 
           echo "RETICULATE_PYTHON=$RETICULATE_PYTHON"
           echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+          echo "LD_PRELOAD=$LD_PRELOAD"
+
+          ls -l "$CONDA_ENV/lib/libexpat.so.1"
+          ldd "$CONDA_ENV/lib/python3.10/lib-dynload/pyexpat.cpython-310-x86_64-linux-gnu.so" | grep expat || true
 
           "$RETICULATE_PYTHON" -c "import xml.parsers.expat; import pyexpat; print('pyexpat OK')"
 
