@@ -52,25 +52,21 @@ jobs:
         uses: quarto-dev/quarto-actions/setup@v2
 
       - name: Install R packages
-        env:
-          GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          options(repos = c(CRAN = "https://cloud.r-project.org"))
-          install.packages(c(
-            "reticulate",
-            "knitr",
-            "rmarkdown",
-            "tidyverse",
-            "mdsr",
-            "lubridate",
-            "Lahman",
-            "babynames",
-            "rvest",
-            "NHANES",
-            "patchwork",
-            "mosaicData"
-          ))
-        shell: Rscript {0}
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::reticulate
+            any::knitr
+            any::rmarkdown
+            any::tidyverse
+            any::mdsr
+            any::lubridate
+            any::Lahman
+            any::babynames
+            any::rvest
+            any::NHANES
+            any::patchwork
+            any::mosaicData
 
       - name: Prepare README as index
         run: |
