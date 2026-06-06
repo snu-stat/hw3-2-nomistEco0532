@@ -769,8 +769,7 @@ TeamRuns2 = (
     .rename({
         "R": "RS",
         "2B": "X2B",
-        "3B": "X3B",
-        "IPOuts": "IPouts"
+        "3B": "X3B"
     })
     .filter(
         (pl.col("yearID") >= 2010) &
