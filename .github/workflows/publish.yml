@@ -72,13 +72,28 @@ jobs:
         run: |
           cp README.md index.md
 
+            - name: Prepare README as Index
+        run: cp README.md index.md
+
       - name: Render Quarto
+        shell: bash -el {0}
         run: |
+          set -euxo pipefail
+
+          export RETICULATE_PYTHON="$(conda info --base)/envs/r-reticulate/bin/python"
           echo "RETICULATE_PYTHON=$RETICULATE_PYTHON"
-          Rscript -e 'reticulate::py_config()'
-          quarto render
-          test -d _site
-          ls -la _site
+
+          quarto render hw03.qmd --to html
+          quarto render hw03.qmd --to ipynb
+          quarto render index.md --to html
+
+          echo "Rendered files:"
+          find _site -maxdepth 2 -type f | sort
+
+          test -f _site/hw03.html
+          test -f _site/hw03.ipynb
+
+          cp _site/hw03.ipynb hw03.ipynb
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
