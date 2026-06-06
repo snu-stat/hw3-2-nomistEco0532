@@ -36,7 +36,9 @@ jobs:
         run: |
           conda install -n r-reticulate -c conda-forge -y \
             pip \
+            "openssl>=3.3.0" \
             "expat>=2.7.5" \
+            "libexpat>=2.7.5" \
             session-info \
             requests \
             polars \
@@ -56,6 +58,7 @@ jobs:
             pylahman \
             patchworklib
 
+          conda run -n r-reticulate python -c "import ssl; print(ssl.OPENSSL_VERSION)"
           conda run -n r-reticulate python -c "import xml.parsers.expat; import pyexpat; print('pyexpat OK')"
           conda run -n r-reticulate python -c "import session_info, requests, polars, pandas, numpy, pybabynames, plotnine, bs4, matplotlib, patchworklib, IPython, scipy, seaborn, patsy, pylahman, statsmodels; print('Python packages OK')"
       
@@ -105,7 +108,7 @@ jobs:
           export CONDA_ENV="$(conda info --base)/envs/r-reticulate"
           export RETICULATE_PYTHON="$CONDA_ENV/bin/python"
           export LD_LIBRARY_PATH="$CONDA_ENV/lib:${LD_LIBRARY_PATH:-}"
-          export LD_PRELOAD="$CONDA_ENV/lib/libexpat.so.1"
+          export LD_PRELOAD="$CONDA_ENV/lib/libcrypto.so.3:$CONDA_ENV/lib/libssl.so.3:$CONDA_ENV/lib/libexpat.so.1"
 
           echo "RETICULATE_PYTHON=$RETICULATE_PYTHON"
           echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
@@ -114,6 +117,7 @@ jobs:
           ls -l "$CONDA_ENV/lib/libexpat.so.1"
           ldd "$CONDA_ENV/lib/python3.10/lib-dynload/pyexpat.cpython-310-x86_64-linux-gnu.so" | grep expat || true
 
+          "$RETICULATE_PYTHON" -c "import ssl; print(ssl.OPENSSL_VERSION)"
           "$RETICULATE_PYTHON" -c "import xml.parsers.expat; import pyexpat; print('pyexpat OK')"
 
           quarto render hw03.qmd --to html
