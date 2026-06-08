@@ -179,4 +179,8 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/nomisteco0532/my-r-env:latest
+          tags: ghcr.io/nomisteco0532/    my-r-env:latest
+     - name: Check out repository
+       uses: actions/checkout@v4
+       with:
+         fetch-depth: 0
