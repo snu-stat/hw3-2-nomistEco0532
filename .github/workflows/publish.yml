@@ -7,7 +7,11 @@ on:
       - 'hw03.html'
       - 'hw03.ipynb'
   workflow_dispatch:
-
+  
+concurrency:
+  group: quarto-publish-main
+  cancel-in-progress: true
+  
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
@@ -148,6 +152,8 @@ jobs:
             echo "No rendered file changes to commit."
           else
             git commit -m "Update rendered homework files [skip ci]"
+
+            git pull --rebase origin main
             git push origin HEAD:main
           fi
 
