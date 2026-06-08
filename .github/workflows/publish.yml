@@ -3,15 +3,12 @@ name: Quarto Publish
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - 'hw03.html'
-      - 'hw03.ipynb'
   workflow_dispatch:
-  
+
 concurrency:
   group: quarto-publish-main
   cancel-in-progress: true
-  
+
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
@@ -68,13 +65,11 @@ jobs:
           conda run -n r-reticulate python -c "import ssl; print(ssl.OPENSSL_VERSION)"
           conda run -n r-reticulate python -c "import xml.parsers.expat; import pyexpat; print('pyexpat OK')"
           conda run -n r-reticulate python -c "import session_info, requests, polars, pandas, numpy, pybabynames, plotnine, bs4, matplotlib, patchworklib, IPython, scipy, seaborn, patsy, pylahman, statsmodels; print('Python packages OK')"
-      
+
       - name: Point reticulate to Conda Python
         run: |
           echo "RETICULATE_PYTHON=$CONDA_PREFIX/bin/python" >> "$GITHUB_ENV"
-          echo "LD_LIBRARY_PATH=$CONDA_PREFIX/lib:${LD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
           echo "Using Python: $CONDA_PREFIX/bin/python"
-          echo "Using library path: $CONDA_PREFIX/lib"
 
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
@@ -121,9 +116,6 @@ jobs:
           echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
           echo "LD_PRELOAD=$LD_PRELOAD"
 
-          ls -l "$CONDA_ENV/lib/libexpat.so.1"
-          ldd "$CONDA_ENV/lib/python3.10/lib-dynload/pyexpat.cpython-310-x86_64-linux-gnu.so" | grep expat || true
-
           "$RETICULATE_PYTHON" -c "import ssl; print(ssl.OPENSSL_VERSION)"
           "$RETICULATE_PYTHON" -c "import xml.parsers.expat; import pyexpat; print('pyexpat OK')"
 
@@ -136,26 +128,9 @@ jobs:
 
           test -f _site/hw03.html
           test -f _site/hw03.ipynb
+          test -f _site/index.html
 
-          cp _site/hw03.html hw03.html
           cp _site/hw03.ipynb hw03.ipynb
-
-      - name: Commit rendered files to main
-        if: github.ref == 'refs/heads/main'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add hw03.html hw03.ipynb
-
-          if git diff --cached --quiet; then
-            echo "No rendered file changes to commit."
-          else
-            git commit -m "Update rendered homework files [skip ci]"
-
-            git pull --rebase origin main
-            git push origin HEAD:main
-          fi
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
@@ -163,6 +138,11 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./_site
           publish_branch: gh-pages
+
+      - name: Verify Binder notebook exists
+        run: |
+          ls -lh hw03.ipynb
+          test -f hw03.ipynb
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -179,9 +159,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/nomisteco0532/    my-r-env:latest
-          
-      - name: Check out repository
-        uses: actions/checkout@v4
-        with:
-         fetch-depth: 0
+          tags: ghcr.io/nomisteco0532/my-r-env:latest
