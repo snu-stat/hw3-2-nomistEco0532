@@ -10,7 +10,7 @@
 이 숙제의 상세 분석 결과는 아래 링크에서 확인할 수 있습니다.
 
 * [분석 리포트 (HTML)](https://snu-stat.github.io/hw3-2-nomistEco0532/hw03.html)
-* [주피터 노트북 파일 (ipynb)](https://snu-stat.github.io/hw3-2-nomistEco0532/hw03.ipynb)
+* [주피터 노트북 파일 (ipynb)](./hw03.ipynb)
 * [Binder에서 실행하기](https://mybinder.org/v2/gh/snu-stat/hw3-2-nomistEco0532/main?urlpath=lab/tree/hw03.ipynb)
 1.	R과 Python을 모두 사용하여 사용된 코드와 데이터랭글링 절차, 분석결과를 설명한다. 두 언어의 분석결과가 차이가 있으면 그 이유를 설명한다.
 2.  [Quarto Markdown](https://quarto.org/docs/authoring/markdown-basics.html)을 사용한다. 제공된 숙제 `.qmd` 파일에 본인의 답안을 "답안" 절에 추가하여 제출한다. Quarto Markdown은 RStudio 또는 Visual Studio Code에 [Quarto Extension](https://marketplace.visualstudio.com/items?itemName=quarto.quarto)을 추가하여 컴파일, 다른 문서 형식으로 변환할 수 있다. 
