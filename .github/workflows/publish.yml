@@ -131,6 +131,7 @@ jobs:
           test -f _site/index.html
 
           cp _site/hw03.ipynb hw03.ipynb
+          cp _site/hw03.html hw03.html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
