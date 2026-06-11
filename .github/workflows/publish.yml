@@ -1,5 +1,6 @@
 name: Quarto Publish
 
+
 on:
   push:
     branches: [main]
@@ -173,6 +174,9 @@ jobs:
         with:
           context: .
           push: true
+          platforms: linux/amd64
+          provenance: false
+          sbom: false
           tags: ghcr.io/nomisteco0532/my-r-env:latest
 
       - name: Verify Docker image contains notebook
