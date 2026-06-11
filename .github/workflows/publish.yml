@@ -130,18 +130,6 @@ jobs:
           test -f _site/hw03.ipynb
           test -f _site/index.html
 
-          cp _site/hw03.ipynb hw03.ipynb
-          cp _site/hw03.html hw03.html
-          
-      - name: Commit rendered files to main
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add hw03.html hw03.ipynb
-          git commit -m "Update rendered hw03 files [skip ci]" || echo "No changes to commit"
-          git push origin HEAD:main
-
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
@@ -151,8 +139,8 @@ jobs:
 
       - name: Verify Binder notebook exists
         run: |
-          ls -lh hw03.ipynb
-          test -f hw03.ipynb
+          ls -lh _site/hw03.ipynb
+          test -f _site/hw03.ipynb
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
