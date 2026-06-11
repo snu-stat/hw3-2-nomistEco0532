@@ -55,7 +55,8 @@ ENV PATH=/opt/conda/envs/r-reticulate/bin:/opt/conda/bin:${PATH}
 RUN R -e "install.packages(c('reticulate', 'remotes', 'IRkernel', 'knitr', 'rmarkdown', 'mdsr', 'lubridate', 'Lahman', 'googlesheets4', 'babynames', 'rvest', 'NHANES', 'patchwork', 'mosaicData', 'bench', 'MASS'), repos = 'https://cloud.r-project.org')" && \
     R -e "IRkernel::installspec(user = FALSE)"
 
-RUN chown -R rstudio:rstudio ${CONDA_DIR} /home/rstudio
+COPY --chown=rstudio:rstudio _site/hw03.ipynb /home/rstudio/hw03.ipynb
+COPY --chown=rstudio:rstudio _site/hw03.html /home/rstudio/hw03.html
 
 USER rstudio
 WORKDIR /home/rstudio
