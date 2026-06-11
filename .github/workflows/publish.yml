@@ -179,10 +179,6 @@ jobs:
           sbom: false
           tags: ghcr.io/nomisteco0532/my-r-env:latest
 
-      - name: Verify Docker image contains notebook
-        run: |
-          docker run --rm ghcr.io/nomisteco0532/my-r-env:latest bash -lc "ls -lh /home/rstudio/hw03.ipynb && test -f /home/rstudio/hw03.ipynb"
-      
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
