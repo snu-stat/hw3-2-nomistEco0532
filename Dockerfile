@@ -16,13 +16,15 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86
 
 ENV PATH=$CONDA_DIR/bin:$PATH
 
-RUN conda create -n r-reticulate python=3.10 -y && \
-    conda install -n r-reticulate -c conda-forge numpy pandas matplotlib -y
+RUN conda config --add channels conda-forge && \
+    conda config --set channel_priority strict && \
+    conda install -y python=3.10 numpy pandas matplotlib && \
+    conda clean -afy
 
 RUN R -e "install.packages(c('reticulate', 'remotes', 'IRkernel'))" && \
     R -e "IRkernel::installspec(user = FALSE)"
 
-ENV RETICULATE_PYTHON=/opt/conda/envs/r-reticulate/bin/python
+ENV RETICULATE_PYTHON=/opt/conda/bin/python
 
 RUN useradd -m -s /bin/bash jovyan && \
     chown -R jovyan:jovyan /opt/conda /home/jovyan
