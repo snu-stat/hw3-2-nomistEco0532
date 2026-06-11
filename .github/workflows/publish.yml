@@ -142,6 +142,22 @@ jobs:
           test -f _site/hw03.ipynb
           test -f _site/index.html
 
+      - name: Verify Docker build inputs
+        run: |
+          test -f Dockerfile
+          test -f _site/hw03.ipynb
+          test -f _site/hw03.html
+
+          if [ -f .dockerignore ]; then
+            echo ".dockerignore exists:"
+            cat .dockerignore
+
+            if grep -E '^_site/?$' .dockerignore; then
+              echo "ERROR: .dockerignore excludes _site, but Dockerfile needs _site/hw03.ipynb"
+              exit 1
+            fi
+          fi
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -158,6 +174,10 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/my-r-env:latest
+
+      - name: Verify Docker image contains notebook
+        run: |
+          docker run --rm ghcr.io/${{ github.repository_owner }}/my-r-env:latest bash -lc "ls -lh /home/rstudio/hw03.ipynb && test -f /home/rstudio/hw03.ipynb"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
