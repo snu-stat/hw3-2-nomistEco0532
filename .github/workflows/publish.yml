@@ -7,10 +7,12 @@ on:
 
 concurrency:
   group: quarto-publish-main
+  cancel-in-progress: false
 
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
 
     permissions:
       contents: write
@@ -37,6 +39,8 @@ jobs:
       - name: Install Python dependencies via Conda
         shell: bash -l {0}
         run: |
+          set -euxo pipefail
+
           conda install -n r-reticulate -c conda-forge -y \
             pip \
             "openssl>=3.3.0" \
@@ -96,13 +100,13 @@ jobs:
             any::patchwork
             any::mosaicData
             any::bench
+            any::MASS
 
       - name: Prepare README as index
         run: |
           cp README.md index.md
 
       - name: Render Quarto
-        shell: bash -el {0}
         run: |
           set -euxo pipefail
 
@@ -129,17 +133,14 @@ jobs:
           test -f _site/hw03.ipynb
           test -f _site/index.html
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./_site
-          publish_branch: gh-pages
-
-      - name: Verify Binder notebook exists
+      - name: Verify generated site files
         run: |
+          ls -lh _site/hw03.html
           ls -lh _site/hw03.ipynb
+          ls -lh _site/index.html
+          test -f _site/hw03.html
           test -f _site/hw03.ipynb
+          test -f _site/index.html
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -156,35 +157,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/my-r-env:latest
-            ghcr.io/${{ github.repository_owner }}/my-r-env:${{ github.sha }}
-
-      - name: Add Binder Dockerfile to published site
-        run: |
-          cat > _site/Dockerfile <<EOF
-          FROM ghcr.io/${{ github.repository_owner }}/my-r-env:${{ github.sha }}
-
-          ARG NB_USER=rstudio
-          ARG NB_UID=1000
-
-          ENV USER=\${NB_USER}
-          ENV NB_UID=\${NB_UID}
-          ENV HOME=/home/\${NB_USER}
-
-          USER root
-          COPY . \${HOME}
-          RUN chown -R \${NB_UID}:\${NB_UID} \${HOME}
-
-          USER \${NB_USER}
-          WORKDIR \${HOME}
-
-          ENTRYPOINT []
-          EOF
-
-          echo "Binder Dockerfile:"
-          cat _site/Dockerfile
-          test -f _site/Dockerfile
+          tags: ghcr.io/${{ github.repository_owner }}/my-r-env:latest
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
