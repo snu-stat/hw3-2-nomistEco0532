@@ -165,20 +165,20 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: nomistEco0532
+          password: ${{ secrets.GHCR_PAT }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/my-r-env:latest
+          tags: ghcr.io/nomisteco0532/my-r-env:latest
 
       - name: Verify Docker image contains notebook
         run: |
-          docker run --rm ghcr.io/${{ github.repository_owner }}/my-r-env:latest bash -lc "ls -lh /home/rstudio/hw03.ipynb && test -f /home/rstudio/hw03.ipynb"
-
+          docker run --rm ghcr.io/nomisteco0532/my-r-env:latest bash -lc "ls -lh /home/rstudio/hw03.ipynb && test -f /home/rstudio/hw03.ipynb"
+      
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
