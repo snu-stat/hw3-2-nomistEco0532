@@ -7,7 +7,6 @@ on:
 
 concurrency:
   group: quarto-publish-main
-  cancel-in-progress: true
 
 jobs:
   build-deploy:
