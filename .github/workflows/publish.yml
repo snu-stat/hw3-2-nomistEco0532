@@ -149,32 +149,15 @@ jobs:
           test -f _site/hw03.ipynb
           test -f _site/hw03.html
 
-          if [ -f .dockerignore ]; then
-            echo ".dockerignore exists:"
-            cat .dockerignore
+      - name: Add Dockerfile to rendered site for Binder
+        run: |
+          cp Dockerfile _site/Dockerfile
+          test -f _site/Dockerfile
+          ls -lh _site/Dockerfile
 
-            if grep -E '^_site/?$' .dockerignore; then
-              echo "ERROR: .dockerignore excludes _site, but Dockerfile needs _site/hw03.ipynb"
-              exit 1
-            fi
-          fi
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          registry: ghcr.io
-          username: nomistEco0532
-          password: ${{ secrets.GHCR_PAT }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          platforms: linux/amd64
-          provenance: false
-          sbom: false
-          tags: ghcr.io/nomisteco0532/my-r-env:latest
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+          publish_branch: gh-pages
