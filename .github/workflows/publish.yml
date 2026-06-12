@@ -1,97 +1,146 @@
-name: Quarto Publish (R & Custom Packages)
+name: Quarto Publish
+
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: quarto-publish-main
+  cancel-in-progress: false
 
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
 
     permissions:
       contents: write
       packages: write
 
+    defaults:
+      run:
+        shell: bash -el {0}
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Install System Dependencies
-        run: |
-          sudo apt-get update
-
-      - name: Setup Miniconda
-        uses: conda-incubator/setup-miniconda@v3
+      - name: Setup Miniforge / Conda
+        uses: conda-incubator/setup-miniconda@v4
         with:
-          auto-update-conda: true
-          python-version: '3.10'
+          miniforge-version: latest
           activate-environment: r-reticulate
-          channels: conda-forge,defaults
+          python-version: "3.10"
+          channels: conda-forge
+          channel-priority: strict
+          conda-remove-defaults: "true"
 
       - name: Install Python dependencies via Conda
-        run: |
-          conda install -n r-reticulate numpy pandas matplotlib polars scipy statsmodels requests beautifulsoup4 session-info -y
         shell: bash -l {0}
-
+        run: |
+          set -euxo pipefail
+          conda install -n r-reticulate -c conda-forge -y \
+            pip \
+            "openssl>=3.3.0" \
+            "expat>=2.7.5" \
+            "libexpat>=2.7.5" \
+            session-info \
+            requests \
+            polars \
+            pandas \
+            numpy \
+            plotnine \
+            beautifulsoup4 \
+            matplotlib \
+            ipython \
+            scipy \
+            seaborn \
+            patsy \
+            statsmodels
+          conda run -n r-reticulate python -m pip install \
+            pybabynames \
+            pylahman \
+            patchworklib
+          conda run -n r-reticulate python -c "import ssl; print(ssl.OPENSSL_VERSION)"
+          conda run -n r-reticulate python -c "import xml.parsers.expat; import pyexpat; print('pyexpat OK')"
+          conda run -n r-reticulate python -c "import session_info, requests, polars, pandas, numpy, pybabynames, plotnine, bs4, matplotlib, patchworklib, IPython, scipy, seaborn, patsy, pylahman, statsmodels; print('Python packages OK')"
+      - name: Point reticulate to Conda Python
+        run: |
+          echo "RETICULATE_PYTHON=$CONDA_PREFIX/bin/python" >> "$GITHUB_ENV"
+          echo "Using Python: $CONDA_PREFIX/bin/python"
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
         with:
-          use-public-rspm: true 
+          use-public-rspm: true
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      - name: Install R Packages
-        env:
-          GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install R packages
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::reticulate
+            any::knitr
+            any::rmarkdown
+            any::tidyverse
+            any::mdsr
+            any::lubridate
+            any::Lahman
+            any::googlesheets4
+            any::babynames
+            any::rvest
+            any::NHANES
+            any::patchwork
+            any::mosaicData
+            any::bench
+            any::MASS
+      - name: Prepare README as index
         run: |
-          install.packages(c(
-            "reticulate",
-            "knitr",
-            "rmarkdown",
-            "tidyverse",
-            "mdsr",
-            "lubridate",
-            "Lahman",
-            "googlesheets4",
-            "babynames",
-            "rvest",
-            "bench",
-            "NHANES",
-            "patchwork",
-            "mosaicData"
-          ))
-        shell: Rscript {0}
-
+          cp README.md index.md
       - name: Render Quarto
         run: |
-          export RETICULATE_PYTHON=$(conda info --base)/envs/r-reticulate/bin/python
-          quarto render
-        shell: bash -l {0}
-
+          set -euxo pipefail
+          export CONDA_ENV="$(conda info --base)/envs/r-reticulate"
+          export RETICULATE_PYTHON="$CONDA_ENV/bin/python"
+          export LD_LIBRARY_PATH="$CONDA_ENV/lib:${LD_LIBRARY_PATH:-}"
+          export LD_PRELOAD="$CONDA_ENV/lib/libcrypto.so.3:$CONDA_ENV/lib/libssl.so.3:$CONDA_ENV/lib/libexpat.so.1"
+          echo "RETICULATE_PYTHON=$RETICULATE_PYTHON"
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+          echo "LD_PRELOAD=$LD_PRELOAD"
+          "$RETICULATE_PYTHON" -c "import ssl; print(ssl.OPENSSL_VERSION)"
+          "$RETICULATE_PYTHON" -c "import xml.parsers.expat; import pyexpat; print('pyexpat OK')"
+          quarto render hw03.qmd --to html
+          quarto render hw03.qmd --to ipynb
+          quarto render index.md --to html
+          echo "Rendered files:"
+          find _site -maxdepth 2 -type f | sort
+          test -f _site/hw03.html
+          test -f _site/hw03.ipynb
+          test -f _site/index.html
+      - name: Verify generated site files
+        run: |
+          ls -lh _site/hw03.html
+          ls -lh _site/hw03.ipynb
+          ls -lh _site/index.html
+          test -f _site/hw03.html
+          test -f _site/hw03.ipynb
+          test -f _site/index.html
+      - name: Verify Docker build inputs
+        run: |
+          test -f Dockerfile
+          test -f _site/hw03.ipynb
+          test -f _site/hw03.html
+      - name: Add Dockerfile to rendered site for Binder
+        run: |
+          cp Dockerfile _site/Dockerfile
+          test -f _site/Dockerfile
+          ls -lh _site/Dockerfile
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./_site
           publish_branch: gh-pages
-
-      # -----------------------------
-      # Docker + GHCR SECTION (ADDED)
-      # -----------------------------
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Compute lowercase image name
-        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/my-r-env:latest" >> "$GITHUB_ENV"
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ env.IMAGE }}
