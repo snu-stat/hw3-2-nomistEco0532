@@ -4386,7 +4386,7 @@ statsmodels         0.14.6
 Python 3.10.20 | packaged by conda-forge | (main, Jun 11 2026, 03:40:09) [GCC 14.3.0]
 Linux-6.17.0-1018-azure-x86_64-with-glibc2.39
 -----
-Session information updated at 2026-06-12 09:27</code></pre>
+Session information updated at 2026-06-12 09:48</code></pre>
 </div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
@@ -4666,7 +4666,7 @@ Dep. Variable:           SmokeNow_new   No. Observations:                 4424
 Model:                          Logit   Df Residuals:                     4413
 Method:                           MLE   Df Model:                           10
 Date:                Fri, 12 Jun 2026   Pseudo R-squ.:                  0.1499
-Time:                        09:27:07   Log-Likelihood:                -2044.8
+Time:                        09:48:31   Log-Likelihood:                -2044.8
 converged:                       True   LL-Null:                       -2405.5
 Covariance Type:            nonrobust   LLR p-value:                1.618e-148
 ===================================================================================================
@@ -5070,7 +5070,7 @@ Model Family:                Binomial   Df Model:                            0
 Link Function:                  Logit   Scale:                          1.0000
 Method:                          IRLS   Log-Likelihood:                -1331.7
 Date:                Fri, 12 Jun 2026   Deviance:                       180.21
-Time:                        09:27:20   Pearson chi2:                     180.
+Time:                        09:48:43   Pearson chi2:                     180.
 No. Iterations:                     4   Pseudo R-squ. (CS):             0.9659
 Covariance Type:            nonrobust                                         
 ==================================================================================
@@ -5155,11 +5155,11 @@ log(run_ratio)     1.7535      0.046     38.440      0.000       1.664       1.8
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb56"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>plt.scatter(linear_pred, deviance_resid, alpha<span class="op">=</span><span class="fl">0.5</span>, s<span class="op">=</span><span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;matplotlib.collections.PathCollection object at 0x7f87d1588460&gt;</code></pre>
+<pre><code>&lt;matplotlib.collections.PathCollection object at 0x7f8180460280&gt;</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb58"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>plt.axhline(y<span class="op">=</span><span class="dv">0</span>, color<span class="op">=</span><span class="st">&#39;red&#39;</span>, linestyle<span class="op">=</span><span class="st">&#39;-&#39;</span>, linewidth<span class="op">=</span><span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;matplotlib.lines.Line2D object at 0x7f87d1588e50&gt;</code></pre>
+<pre><code>&lt;matplotlib.lines.Line2D object at 0x7f8180460c70&gt;</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb60"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">&quot;Linear Predictor (link scale)&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -5240,11 +5240,11 @@ Number of Fisher Scoring iterations: 3</code></pre>
 <span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb71-5"><a href="#cb71-5" aria-hidden="true" tabindex="-1"></a>plt.scatter(eta, dev_resid, s<span class="op">=</span><span class="dv">12</span>, alpha<span class="op">=</span><span class="fl">0.6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;matplotlib.collections.PathCollection object at 0x7f87d1546f50&gt;</code></pre>
+<pre><code>&lt;matplotlib.collections.PathCollection object at 0x7f8180422d10&gt;</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb73"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>plt.axhline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">&quot;red&quot;</span>, lw<span class="op">=</span><span class="dv">1</span>)        <span class="co"># abline(h=0, col=&quot;red&quot;)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;matplotlib.lines.Line2D object at 0x7f87d1546e90&gt;</code></pre>
+<pre><code>&lt;matplotlib.lines.Line2D object at 0x7f81804229e0&gt;</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb75"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">&quot;Linear predictor&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -5507,7 +5507,7 @@ Model Family:                Binomial   Df Model:                            5
 Link Function:                  Logit   Scale:                          1.0000
 Method:                          IRLS   Log-Likelihood:                -1294.7
 Date:                Fri, 12 Jun 2026   Deviance:                       106.18
-Time:                        09:27:24   Pearson chi2:                     106.
+Time:                        09:48:47   Pearson chi2:                     106.
 No. Iterations:                     4   Pseudo R-squ. (CS):             0.9710
 Covariance Type:            nonrobust                                         
 ==============================================================================
@@ -5544,7 +5544,7 @@ Model Family:                Binomial   Df Model:                            3
 Link Function:                  Logit   Scale:                          1.0000
 Method:                          IRLS   Log-Likelihood:                -1297.8
 Date:                Fri, 12 Jun 2026   Deviance:                       112.35
-Time:                        09:27:24   Pearson chi2:                     112.
+Time:                        09:48:47   Pearson chi2:                     112.
 No. Iterations:                     4   Pseudo R-squ. (CS):             0.9706
 Covariance Type:            nonrobust                                         
 ==============================================================================
@@ -5711,7 +5711,7 @@ Model Family:                 Poisson   Df Model:                            4
 Link Function:                    Log   Scale:                          1.0000
 Method:                          IRLS   Log-Likelihood:                -1432.1
 Date:                Fri, 12 Jun 2026   Deviance:                       64.371
-Time:                        09:27:26   Pearson chi2:                     64.0
+Time:                        09:48:49   Pearson chi2:                     64.0
 No. Iterations:                     4   Pseudo R-squ. (CS):             0.8308
 Covariance Type:            nonrobust                                         
 ==============================================================================
@@ -5768,7 +5768,7 @@ Model Family:                 Poisson   Df Model:                            3
 Link Function:                    Log   Scale:                          1.0000
 Method:                          IRLS   Log-Likelihood:                -1433.7
 Date:                Fri, 12 Jun 2026   Deviance:                       67.531
-Time:                        09:27:26   Pearson chi2:                     67.2
+Time:                        09:48:49   Pearson chi2:                     67.2
 No. Iterations:                     4   Pseudo R-squ. (CS):             0.8296
 Covariance Type:            nonrobust                                         
 ==============================================================================
@@ -5998,7 +5998,7 @@ Dep. Variable:                      W   No. Observations:                  450
 Model:               NegativeBinomial   Df Residuals:                      446
 Method:                           MLE   Df Model:                            3
 Date:                Fri, 12 Jun 2026   Pseudo R-squ.:                  0.1922
-Time:                        09:27:32   Log-Likelihood:                -1433.7
+Time:                        09:48:55   Log-Likelihood:                -1433.7
 converged:                      False   LL-Null:                       -1774.9
 Covariance Type:            nonrobust   LLR p-value:                1.438e-147
 ==============================================================================
@@ -6147,7 +6147,7 @@ Model Family:                Binomial   Df Model:                            1
 Link Function:                  Logit   Scale:                          1.0000
 Method:                          IRLS   Log-Likelihood:                -55030.
 Date:                Fri, 12 Jun 2026   Deviance:                       301.14
-Time:                        09:27:33   Pearson chi2:                     301.
+Time:                        09:48:55   Pearson chi2:                     301.
 No. Iterations:                     4   Pseudo R-squ. (CS):             0.9612
 Covariance Type:            nonrobust                                         
 =================================================================================
