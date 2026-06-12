@@ -178,16 +178,3 @@ jobs:
           provenance: false
           sbom: false
           tags: ghcr.io/nomisteco0532/my-r-env:latest
-          
-      - name: Add Binder config to rendered site
-        run: |
-          mkdir -p _site/binder
-          cp -R binder/* _site/binder/
-          chmod +x _site/binder/postBuild
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./_site
-          publish_branch: gh-pages
