@@ -4386,7 +4386,7 @@ statsmodels         0.14.6
 Python 3.10.20 | packaged by conda-forge | (main, Jun 11 2026, 03:40:09) [GCC 14.3.0]
 Linux-6.17.0-1018-azure-x86_64-with-glibc2.39
 -----
-Session information updated at 2026-06-12 09:09</code></pre>
+Session information updated at 2026-06-12 09:14</code></pre>
 </div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
@@ -4666,7 +4666,7 @@ Dep. Variable:           SmokeNow_new   No. Observations:                 4424
 Model:                          Logit   Df Residuals:                     4413
 Method:                           MLE   Df Model:                           10
 Date:                Fri, 12 Jun 2026   Pseudo R-squ.:                  0.1499
-Time:                        09:09:48   Log-Likelihood:                -2044.8
+Time:                        09:14:20   Log-Likelihood:                -2044.8
 converged:                       True   LL-Null:                       -2405.5
 Covariance Type:            nonrobust   LLR p-value:                1.618e-148
 ===================================================================================================
@@ -5070,7 +5070,7 @@ Model Family:                Binomial   Df Model:                            0
 Link Function:                  Logit   Scale:                          1.0000
 Method:                          IRLS   Log-Likelihood:                -1331.7
 Date:                Fri, 12 Jun 2026   Deviance:                       180.21
-Time:                        09:10:01   Pearson chi2:                     180.
+Time:                        09:14:30   Pearson chi2:                     180.
 No. Iterations:                     4   Pseudo R-squ. (CS):             0.9659
 Covariance Type:            nonrobust                                         
 ==================================================================================
@@ -5155,11 +5155,11 @@ log(run_ratio)     1.7535      0.046     38.440      0.000       1.664       1.8
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb56"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>plt.scatter(linear_pred, deviance_resid, alpha<span class="op">=</span><span class="fl">0.5</span>, s<span class="op">=</span><span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;matplotlib.collections.PathCollection object at 0x7f197846c4c0&gt;</code></pre>
+<pre><code>&lt;matplotlib.collections.PathCollection object at 0x7fe7c1458280&gt;</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb58"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>plt.axhline(y<span class="op">=</span><span class="dv">0</span>, color<span class="op">=</span><span class="st">&#39;red&#39;</span>, linestyle<span class="op">=</span><span class="st">&#39;-&#39;</span>, linewidth<span class="op">=</span><span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;matplotlib.lines.Line2D object at 0x7f197846ceb0&gt;</code></pre>
+<pre><code>&lt;matplotlib.lines.Line2D object at 0x7fe7c1458c70&gt;</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb60"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">&quot;Linear Predictor (link scale)&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -5240,11 +5240,11 @@ Number of Fisher Scoring iterations: 3</code></pre>
 <span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb71-5"><a href="#cb71-5" aria-hidden="true" tabindex="-1"></a>plt.scatter(eta, dev_resid, s<span class="op">=</span><span class="dv">12</span>, alpha<span class="op">=</span><span class="fl">0.6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;matplotlib.collections.PathCollection object at 0x7f197842f640&gt;</code></pre>
+<pre><code>&lt;matplotlib.collections.PathCollection object at 0x7fe7c1416d10&gt;</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb73"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>plt.axhline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">&quot;red&quot;</span>, lw<span class="op">=</span><span class="dv">1</span>)        <span class="co"># abline(h=0, col=&quot;red&quot;)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;matplotlib.lines.Line2D object at 0x7f197842e4a0&gt;</code></pre>
+<pre><code>&lt;matplotlib.lines.Line2D object at 0x7fe7c14169e0&gt;</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb75"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">&quot;Linear predictor&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -5507,7 +5507,7 @@ Model Family:                Binomial   Df Model:                            5
 Link Function:                  Logit   Scale:                          1.0000
 Method:                          IRLS   Log-Likelihood:                -1294.7
 Date:                Fri, 12 Jun 2026   Deviance:                       106.18
-Time:                        09:10:04   Pearson chi2:                     106.
+Time:                        09:14:33   Pearson chi2:                     106.
 No. Iterations:                     4   Pseudo R-squ. (CS):             0.9710
 Covariance Type:            nonrobust                                         
 ==============================================================================
@@ -5544,7 +5544,7 @@ Model Family:                Binomial   Df Model:                            3
 Link Function:                  Logit   Scale:                          1.0000
 Method:                          IRLS   Log-Likelihood:                -1297.8
 Date:                Fri, 12 Jun 2026   Deviance:                       112.35
-Time:                        09:10:04   Pearson chi2:                     112.
+Time:                        09:14:33   Pearson chi2:                     112.
 No. Iterations:                     4   Pseudo R-squ. (CS):             0.9706
 Covariance Type:            nonrobust                                         
 ==============================================================================
@@ -5711,7 +5711,7 @@ Model Family:                 Poisson   Df Model:                            4
 Link Function:                    Log   Scale:                          1.0000
 Method:                          IRLS   Log-Likelihood:                -1432.1
 Date:                Fri, 12 Jun 2026   Deviance:                       64.371
-Time:                        09:10:06   Pearson chi2:                     64.0
+Time:                        09:14:35   Pearson chi2:                     64.0
 No. Iterations:                     4   Pseudo R-squ. (CS):             0.8308
 Covariance Type:            nonrobust                                         
 ==============================================================================
@@ -5768,7 +5768,7 @@ Model Family:                 Poisson   Df Model:                            3
 Link Function:                    Log   Scale:                          1.0000
 Method:                          IRLS   Log-Likelihood:                -1433.7
 Date:                Fri, 12 Jun 2026   Deviance:                       67.531
-Time:                        09:10:07   Pearson chi2:                     67.2
+Time:                        09:14:35   Pearson chi2:                     67.2
 No. Iterations:                     4   Pseudo R-squ. (CS):             0.8296
 Covariance Type:            nonrobust                                         
 ==============================================================================
@@ -5840,7 +5840,7 @@ Poisson AIC — Full: 2903.7 | Stepwise: 2874.2 | Final: 2875.4</code></pre>
 <pre><code>
 Call:
 MASS::glm.nb(formula = W ~ logRS + ERA + SV + offset(log(G)), 
-    data = TeamRuns2, init.theta = 9056472.26, link = log)
+    data = TeamRuns2, init.theta = 9055335.11, link = log)
 
 Coefficients:
               Estimate Std. Error z value Pr(&gt;|z|)    
@@ -5851,7 +5851,7 @@ SV           0.0053766  0.0009051    5.94 2.84e-09 ***
 ---
 Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 
-(Dispersion parameter for Negative Binomial(9056472) family taken to be 1)
+(Dispersion parameter for Negative Binomial(9053941) family taken to be 1)
 
     Null deviance: 863.867  on 449  degrees of freedom
 Residual deviance:  67.531  on 446  degrees of freedom
@@ -5859,9 +5859,9 @@ AIC: 2877.4
 
 Number of Fisher Scoring iterations: 1
 
-              Theta:  9056472 
-          Std. Err.:  83976493 
-Warning while fitting theta: iteration limit reached 
+              Theta:  9055335 
+          Std. Err.:  83968656 
+Warning while fitting theta: alternation limit reached 
 
  2 x log-likelihood:  -2867.395 </code></pre>
 </div>
@@ -5998,17 +5998,17 @@ Dep. Variable:                      W   No. Observations:                  450
 Model:               NegativeBinomial   Df Residuals:                      446
 Method:                           MLE   Df Model:                            3
 Date:                Fri, 12 Jun 2026   Pseudo R-squ.:                  0.1922
-Time:                        09:10:12   Log-Likelihood:                -1433.7
+Time:                        09:14:39   Log-Likelihood:                -1433.7
 converged:                      False   LL-Null:                       -1774.9
 Covariance Type:            nonrobust   LLR p-value:                1.438e-147
 ==============================================================================
                  coef    std err          z      P&gt;|z|      [0.025      0.975]
 ------------------------------------------------------------------------------
-Intercept     -5.5144      0.330    -16.686      0.000      -6.162      -4.867
-logRS          0.8014      0.050     16.178      0.000       0.704       0.898
-ERA           -0.1639      0.012    -13.180      0.000      -0.188      -0.140
-SV             0.0054      0.001      5.940      0.000       0.004       0.007
-alpha       3.232e-09   3.61e-07      0.009      0.993   -7.04e-07    7.11e-07
+Intercept     -5.5145        nan        nan        nan         nan         nan
+logRS          0.8014        nan        nan        nan         nan         nan
+ERA           -0.1639        nan        nan        nan         nan         nan
+SV             0.0054        nan        nan        nan         nan         nan
+alpha       5.001e-09        nan        nan        nan         nan         nan
 ==============================================================================</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb141"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb141-1"><a href="#cb141-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ---- AIC comparison AMONG NEGATIVE BINOMIAL MODELS ONLY ----</span></span>
@@ -6034,7 +6034,7 @@ Negative Binomial AIC — Full: 4925.9 | Stepwise: 2876.2 | Final: 2877.4</code>
 <span id="cb145-4"><a href="#cb145-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb145-5"><a href="#cb145-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;theta approx. like MASS::glm.nb: </span><span class="sc">{</span>theta_final<span class="sc">:.4f}</span><span class="ss">&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>theta approx. like MASS::glm.nb: 309443744.8779</code></pre>
+<pre><code>theta approx. like MASS::glm.nb: 199943393.1808</code></pre>
 </div>
 </div>
 </div>
@@ -6147,7 +6147,7 @@ Model Family:                Binomial   Df Model:                            1
 Link Function:                  Logit   Scale:                          1.0000
 Method:                          IRLS   Log-Likelihood:                -55030.
 Date:                Fri, 12 Jun 2026   Deviance:                       301.14
-Time:                        09:10:12   Pearson chi2:                     301.
+Time:                        09:14:39   Pearson chi2:                     301.
 No. Iterations:                     4   Pseudo R-squ. (CS):             0.9612
 Covariance Type:            nonrobust                                         
 =================================================================================
