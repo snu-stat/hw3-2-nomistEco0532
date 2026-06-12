@@ -243,7 +243,7 @@ anova(null_model, is_smoker_glm, test = "Chisq")
 df_pd = pd.read_csv("NHANES.csv")
 
 # filter age >=20
-df_0 = (df
+df_0 = (pl.from_pandas(df_pd)
   .filter(pl.col("Age") >= 20)
 )
 
@@ -252,7 +252,7 @@ df_0 = (df
 # Choose variables
 cols = ["SmokeNow_new", "Age", "Poverty",
         "Marijuana", "HardDrugs", "Gender", "MaritalStatus"]
-df_pd["MaritalStatus"].value_counts(drop_nulls=False)
+df_pd["MaritalStatus"].value_counts(dropna=False)
 smoke_pl = (
     pl.from_pandas(df_pd)
     .filter(pl.col("Age") >= 20)
@@ -331,17 +331,20 @@ for i in range(len(main_terms)):
         pair_terms.append(f"{main_terms[i]}:{main_terms[j]}")
 interaction_candidates = pair_terms + ["I(Age**2)"]
 
-def fit_aic(terms, data):
+def fit_aic(terms, data, fit_fn=None):
+    if fit_fn is not None:
+        m = fit_fn(terms, data)
+        return np.inf if m is None else m.aic
     rhs = " + ".join(terms) if terms else "1"
     try:
         return smf.logit(f"{response} ~ {rhs}", data=data).fit(disp=False).aic
-    except Exception:                      
+    except Exception:
         return np.inf
 
 def stepwise_aic(data, fixed_terms, candidate_terms, start_terms,
-                 direction="both"):
+                 direction="both", fit_fn=None):                      
     included = list(start_terms)
-    best_aic = fit_aic(fixed_terms + included, data)
+    best_aic = fit_aic(fixed_terms + included, data, fit_fn)          
     history = [{"step": 0, "action": "start", "term": "+".join(fixed_terms),
                 "AIC": round(best_aic, 3)}]
     while True:
@@ -350,11 +353,11 @@ def stepwise_aic(data, fixed_terms, candidate_terms, start_terms,
             for t in candidate_terms:
                 if t not in included:
                     trial = included + [t]
-                    moves.append((fit_aic(fixed_terms + trial, data), "add", t, trial))
+                    moves.append((fit_aic(fixed_terms + trial, data, fit_fn), "add", t, trial))
         if direction in ("backward", "both"):
             for t in included:
                 trial = [x for x in included if x != t]
-                moves.append((fit_aic(fixed_terms + trial, data), "drop", t, trial))
+                moves.append((fit_aic(fixed_terms + trial, data, fit_fn), "drop", t, trial))
         if not moves:
             break
         aic, action, term, trial = min(moves, key=lambda m: m[0])
@@ -364,8 +367,11 @@ def stepwise_aic(data, fixed_terms, candidate_terms, start_terms,
                             "term": term, "AIC": round(aic, 3)})
         else:
             break
-    final = smf.logit(f"{response} ~ {' + '.join(fixed_terms + included)}",
-                      data=data).fit(disp=False)
+    if fit_fn is not None:                                           
+        final = fit_fn(fixed_terms + included, data)
+    else:
+        final = smf.logit(f"{response} ~ {' + '.join(fixed_terms + included)}",
+                          data=data).fit(disp=False)
     return final, included, pd.DataFrame(history)
 
 # 1) Backward selection for main effects
@@ -444,7 +450,6 @@ The estimated coefficients are in the output below:
 #################################
 # MODEL SELECTION
 #################################
-
 # 1) Backward selection for main effects 
 is_smoker_step <- MASS::stepAIC(is_smoker_glm, trace=F)
 is_smoker_step$anova
@@ -498,6 +503,8 @@ $$
   WPct = \frac{RS^k}{S^k+RA^k} = \frac{1}{1+(RA/RS)^k}
 $$
 
+### 답안
+
 The estimate I get is $k=1.753$, which is much smaller than $k=2$ from Bill James' formula. The confidence interval is $(1.695, 1.811)$.
 
 ::: {.panel-tabset}
@@ -524,27 +531,34 @@ fit <- nls(formula = WPct ~ exp_wpct(run_ratio, k),
 
 summary(fit)
 confint(fit)
+paste("AIC", AIC(fit))
+py$TeamRuns <- reticulate::r_to_py(TeamRuns)
 ```
 
 ## Python
 
 ```{python}
-TeamRuns = (
-    pl.from_pandas(pylahman.Teams())
-    .filter(
-        (pl.col("yearID") >= 2010) &
-        (pl.col("yearID") <= 2025) &
-        (pl.col("yearID") != 2020)
-    )
-    .mutate(
-      
-    )
-    .with_columns(
-        (pl.col("W")/(pl.col("W") + pl.col("L"))).alias("WPct"),
-        (pl.col("RS")/(pl.col("RA"))).alia("run_ratio")
-    )
-    .select(["yearID", "teamID", "lgID", "WPct", "run_ratio", "G", "RS", "RA"])
-)
+tr = pl.from_pandas(TeamRuns).drop_nulls(["run_ratio", "WPct"]) # to get data up to 2025
+x = tr["run_ratio"].to_numpy()
+y = tr["WPct"].to_numpy()
+
+def exp_wpct(x, k):
+    return 1.0 / (1.0 + (1.0 / x) ** k)
+
+popt, pcov = curve_fit(exp_wpct, x, y, p0=[2.0])
+k_hat = popt[0]
+se    = np.sqrt(np.diag(pcov))[0]
+
+n, p  = len(y), 1
+dof   = n - p
+rss   = np.sum((y - exp_wpct(x, k_hat))**2)
+s     = np.sqrt(rss / dof)
+t_val = k_hat / se
+p_val = 2 * stats.t.sf(abs(t_val), dof)
+
+print("Parameters:")
+print(f"  k   Estimate={k_hat:.5f}  Std.Error={se:.5f}  t={t_val:.2f}  Pr(>|t|)={p_val:.3g}")
+print(f"\nResidual std error: {s:.5f} on {dof} degrees of freedom")
 ```
 
 :::
@@ -552,11 +566,16 @@ TeamRuns = (
 2.  회귀계수 $\beta_1$이 위 모형의 $k$와 거의 같은 의미를 가지는 로지스틱 회귀 모형을 세우고 이를 데이터에 적합하라. 모수와 점추정치와 신뢰구간을 구하고 이를 1항의 결과와 비교하라. 
 
     *주의*: 절편이 없는 모형을 적합해야 함.
-    *힌트 1*. 로짓은 $\log〖WPct/(1-WPct)$로 계산됨.
+    *힌트 1*. 로짓은 $\log(WPct/(1-WPct))$로 계산됨.
     *힌트 2*. 로짓의 역함수인 sigmoid는 $\frac{1}{1+e^{-x}}$로 계산됨.
+    
 $$
 WPct = \frac{1}{1+e^{-x}}
 $$
+
+### 답안
+
+
 Our model is 
 $$
 \log(\frac{WPct}{1+WPct}) = \beta_1 \cdot x
@@ -591,14 +610,13 @@ confint(fit2)
 ## Python
 
 ```{python}
-X = TeamRuns.select(pl.col("run_ratio").log()).to_numpy()
-y = TeamRuns.select("WPct").to_numpy().flatten()
-weights = TeamRuns.select("G").to_numpy().flatten()
+X = tr.select(pl.col("run_ratio").log()).to_numpy()   
+G    = tr["G"].to_numpy()
+succ = np.rint(tr["WPct"].to_numpy() * G).astype(int)
+fail = (G - succ).astype(int)
+endog = np.column_stack([succ, fail])
 
-fit2 = sm.GLM(y, X,
-              family=sm.families.Binomial(),
-              var_weights=weights).fit()
-
+fit2 = sm.GLM(endog, X, family=sm.families.Binomial()).fit()
 print(fit2.summary(yname="WPct", xname=["log(run_ratio)"]))
 print(fit2.conf_int())
 ```
@@ -610,13 +628,38 @@ print(fit2.conf_int())
     i.  Residual Deviance에 대한 해석 (카이제곱 분포와 비교) 
 	  ii. Deviance residuals vs linear predictors ($\eta$) 산점도 
 	  iii.  관측된 WPct와 모형에서 예측하는 WPct를 산점도 그래프로 비교
+	  
+### 답안
+
+**(i) Residual deviance**
+
+The fitted binomial model has a residual deviance of 180.21 on 449 degrees of freedom. Under the assumed model, the residual deviance is approximately ($\chi^2_{449}$)-distributed. Since the observed deviance is substantially smaller than the expected value of 449, there is no evidence of lack of fit. Instead, the model exhibits underdispersion, with an estimated dispersion of
+
+$$
+\frac{180.21}{449}\approx0.40.
+$$
+
+Thus, the model provides a very good fit to the observed winning proportions.
+
+**(ii) Deviance residuals vs. linear predictor**
+
+The scatter plot of deviance residuals against the linear predictor  shows the residuals randomly distributed around zero with no systematic trend or noticeable curvature. The variability remains fairly constant across the range of fitted values, and there are no obvious clusters or influential outliers. Therefore, there is no indication of model misspecification, and the diagnostic plot supports the adequacy of the fitted binomial regression model.
+
+
 ::: {.panel-tabset}
+
+
 
 ## R
 
 ```{r}
 # i. Residual deviance: 180.26 on 449 df found from part 2
-pchisq(180.2, df=449, lower.tail=FALSE)
+cat("Residual deviance:", deviance(fit2),
+    "on", df.residual(fit2), "df\n")
+
+pchisq(deviance(fit2),
+       df = df.residual(fit2),
+       lower.tail = FALSE)
 
 # ii. Deviance residuals vs. linear predictors 
 plot(predict(fit2, type = "link"),
@@ -631,7 +674,8 @@ p_val = stats.chi2.sf(180.2, df=449)
 print(f"p-value: {p_val:.6f}")
 
 linear_pred   = fit2.predict(which='linear')   
-deviance_resid = fit2.resid_deviance           
+deviance_resid = fit2.resid_deviance   
+print(f"Residual deviance: {fit2.deviance:.6f}")
 
 plt.figure(figsize=(8, 5))
 plt.scatter(linear_pred, deviance_resid, alpha=0.5, s=10)
@@ -669,20 +713,20 @@ summary(fit3)
 ## Python
 
 ```{python}
-X = np.column_stack([
-    TeamRuns.select(pl.col("RS").log()).to_numpy().flatten(),
-    TeamRuns.select(pl.col("RA").log()).to_numpy().flatten()
-])
+# i. Goodness-of-fit p-value (upper tail), pchisq(180.2, 449, lower.tail=FALSE)
+p_gof = stats.chi2.sf(180.2, df=449)
+print(f"GOF p-value: {p_gof:.4f}")     # ~1.0
 
-y       = TeamRuns.select("WPct").to_numpy().flatten()
-weights = TeamRuns.select("G").to_numpy().flatten()
+# ii. Deviance residuals vs linear predictor
+eta = fit2.predict(which="linear")      # == predict(fit2, type="link")
+dev_resid = fit2.resid_deviance         # == residuals(fit2, type="deviance")
 
-# --- Fit GLM (no intercept) ---
-fit3 = sm.GLM(y, X,
-              family=sm.families.Binomial(),
-              var_weights=weights).fit()
-
-print(fit3.summary(yname="WPct", xname=["log(RS)", "log(RA)"]))
+plt.scatter(eta, dev_resid, s=12, alpha=0.6)
+plt.axhline(0, color="red", lw=1)        # abline(h=0, col="red")
+plt.xlabel("Linear predictor")
+plt.ylabel("Deviance residuals")
+plt.title("Deviance residuals vs linear predictor")
+plt.show()
 ```
 
 :::
@@ -693,47 +737,106 @@ print(fit3.summary(yname="WPct", xname=["log(RS)", "log(RA)"]))
 
 ### 답안
 
+Fitting the 23-predictor intercept model (`weights = G`, with (W) and (G) excluded from the right-hand side) and applying stepwise AIC selection reduces it to
+
+$$
+\operatorname{logit}(\mathrm{WPct})
+===================================
+
+\beta_0
++\beta_1\log(RS)
++\beta_2\log(RA)
++\beta_3CG
++\beta_4SHO
++\beta_5SV,
+$$
+
+with AIC (=2601.5). Of these, (CG) ((p=0.13)) and (SHO) ((p=0.065)) are not significant at the 0.05 level. Dropping both increases the AIC by only about 2, so I retain the more parsimonious model
+
+$$
+\operatorname{logit}(\mathrm{WPct}) = \beta_0
++\beta_1\log(RS)
++\beta_2\log(RA)
++\beta_3SV,
+$$
+
+with AIC (=2603.7).
+
+Compared with the Problem 1 model,
+
+$$
+\operatorname{logit}(\mathrm{WPct}) = \beta_1\log(\text{run$\_$ratio}),
+$$
+
+which has AIC (=2665.5), the final model fits substantially better, with an AIC improvement of about 62. The estimated coefficients for ($\log(RS)$) (1.61) and ($\log(RA)$) ((-1.44)) remain close in magnitude to the Pythagorean exponent ($k\approx1.75$), but they are no longer constrained to have equal magnitude and opposite sign. In addition, (SV) is a significant predictor, suggesting that bullpen performance (represented by SV, or saves)  contributes to winning beyond the run ratio alone. The residual deviance (112.35 on 446 degrees of freedom) is well below its degrees of freedom, indicating that the model provides a good fit to the observed winning proportions.
+
+
+
 ::: {.panel-tabset}
 
 ## R
 
 ```{r}
+# ---- Data ----
 TeamRuns2 <- Teams %>%
   filter(2010 <= yearID & yearID <= 2025 & yearID != 2020) %>%
   rename(RS = R) %>%
-  mutate(WPct = W / (W + L),
-         run_ratio = RS/RA,
-         logRS = log(RS),
-         logRA = log(RA)) %>%
+  mutate(WPct      = W / (W + L),
+         run_ratio = RS / RA,
+         logRS     = log(RS),
+         logRA     = log(RA)) %>%
   select(WPct, W, G,
-         logRS, logRA, H, X2B, X3B, HR, BB, SO, 
-         CS, HBP, SF, ERA, CG, SHO, IPouts, HA, 
+         logRS, logRA, H, X2B, X3B, HR, BB, SO,
+         CS, HBP, SF, ERA, CG, SHO, IPouts, HA,
          HRA, BBA, SOA, E, DP, FP, SV)
 
-fit_full <- glm(WPct ~.,
-                family = binomial,
-                weights = G,
-                data = TeamRuns2)
+# ---- Full model: drop W (leaks WPct) and G (it's the weight) from the RHS ----
+fit_full <- glm(WPct ~ . - W - G,
+                family  = binomial,
+                weights = G,            # G == W + L for this era
+                data    = TeamRuns2)
 summary(fit_full)
+
+# ---- Stepwise both directions, no step printout ----
+fit_step <- step(fit_full, direction = "both", trace = 0)
+summary(fit_step)
+confint(fit_step)
+
+cat("Full model AIC:     ", AIC(fit_full), "\n")
+cat("Stepwise model AIC: ", AIC(fit_step), "\n")
+
+# ---- Non-significant terms after stepwise ----
+coef_summary <- summary(fit_step)$coefficients
+ns <- coef_summary[coef_summary[, 4] > 0.05, , drop = FALSE]
+
+# ---- Final model: drop those terms automatically ----
+drop_vars <- setdiff(rownames(ns), "(Intercept)")
+fit_final <- if (length(drop_vars)) {
+  update(fit_step, as.formula(paste(". ~ . -", paste(drop_vars, collapse = " - "))))
+} else fit_step
+summary(fit_final)
+
+# ---- Model comparison ----
+cat("\nAIC  —  Problem 1:", round(AIC(fit2), 1),
+    " | Full:",     round(AIC(fit_full), 1),
+    " | Stepwise:", round(AIC(fit_step), 1),
+    " | Final:",    round(AIC(fit_final), 1), "\n")
+
+py$Teams <- reticulate::r_to_py(Teams)  
 ```
 
 ## Python
 
 ```{python}
 TeamRuns2 = (
-    pl.from_pandas(Teams)
-    .filter(
-        (pl.col("yearID") >= 2010) &
-        (pl.col("yearID") <= 2025) &
-        (pl.col("yearID") != 2020)
-    )
-    .rename({"R": "RS"})
-    .with_columns([
+    pl.from_pandas(Teams)                  
+    .filter((pl.col("yearID") >= 2010) & (pl.col("yearID") <= 2025) & (pl.col("yearID") != 2020))
+    .rename({"R": "RS"})                   
+    .with_columns(
         (pl.col("W") / (pl.col("W") + pl.col("L"))).alias("WPct"),
-        (pl.col("RS") / pl.col("RA")).alias("run_ratio"),
         pl.col("RS").log().alias("logRS"),
-        pl.col("RA").log().alias("logRA")
-    ])
+        pl.col("RA").log().alias("logRA"),
+    )
     .select(["WPct", "W", "G",
              "logRS", "logRA", "H", "X2B", "X3B", "HR", "BB", "SO",
              "CS", "HBP", "SF", "ERA", "CG", "SHO", "IPouts", "HA",
@@ -741,18 +844,41 @@ TeamRuns2 = (
     .drop_nulls()
 )
 
-# --- Fit GLM ---
-y       = TeamRuns2["WPct"].to_numpy()
-weights = TeamRuns2["G"].to_numpy()
 
-X_cols = [c for c in TeamRuns2.columns if c not in ["WPct", "W", "G"]]
-X = sm.add_constant(TeamRuns2.select(X_cols).to_numpy())
+def fit_binom(terms, data):                 # data is a polars DataFrame
+    n    = data.height
+    cols = data.select(terms).to_numpy() if terms else np.empty((n, 0))
+    X    = np.column_stack([np.ones(n), cols])          # intercept + predictors
+    succ = data["W"].to_numpy()
+    fail = (data["G"] - data["W"]).to_numpy()
+    try:
+        return sm.GLM(np.column_stack([succ, fail]), X, family=sm.families.Binomial()).fit()
+    except Exception:
+        return None
 
-fit_full = sm.GLM(y, X,
-                  family=sm.families.Binomial(),
-                  var_weights=weights).fit()
+df = TeamRuns2                                          
+predictors = [c for c in df.columns if c not in ("WPct", "W", "G")]
 
-print(fit_full.summary(yname="WPct", xname=["intercept"] + X_cols))
+fit_full = fit_binom(predictors, df)
+fit_step, step_terms, hist = stepwise_aic(
+    df, fixed_terms=[], candidate_terms=predictors, start_terms=predictors,
+    direction="both", fit_fn=fit_binom)
+
+# coefficient order is ["Intercept"] + step_terms, so map names back ourselves
+names = ["Intercept"] + step_terms
+print(fit_step.summary(xname=names, yname="WPct"))
+print(fit_step.conf_int())
+
+# drop non-significant terms -> final model
+pvals = np.asarray(fit_step.pvalues)
+ns = [nm for nm, pv in zip(names, pvals) if nm != "Intercept" and pv > 0.05]
+fit_final = fit_binom([t for t in step_terms if t not in ns], df)
+print(fit_final.summary(xname=["Intercept"] + [t for t in step_terms if t not in ns]))
+
+print(f"Problem 1 model AIC: {fit2.aic:.2f}")
+print(f"Full model AIC:      {fit_full.aic:.2f}")
+print(f"Stepwise model AIC:  {fit_step.aic:.2f}")
+print(f"Final model AIC:     {fit_final.aic:.2f}")
 ```
 
 :::
@@ -765,72 +891,326 @@ print(fit_full.summary(yname="WPct", xname=["intercept"] + X_cols))
 
 ### 답안
 
-We use the model 
+1. The final model we use for the expected number of wins using a Poisson regression with an offset for the number of games played is
+
 $$
-\log(E[W]) = \log(G) +\beta_1 \cdot \log(run_ratio)
+\log{E(W)}= \log(G)+\beta_0+\beta_1\log(RS)+\beta_2 ERA+\beta_3 SV
 $$
+
+Starting from the full model and applying stepwise AIC selection yields the model with predictors ($\log(RS)$), (ERA), and (SV). The final fitted model has AIC 2875.4, only 1.2 units larger than the minimum-AIC stepwise model (2874.2), while retaining only highly significant predictors.
+
+Compared with the binomial model from Problem 2-2, the Poisson model identifies essentially the same factors influencing team success. The binomial model selected ($\log(RS)$), ($\log(RA)$), and (SV), while the Poisson model selected ($\log(RS)$), (ERA), and (SV) with an offset of ($\log(G)$). Thus, both models show that offensive production, run prevention, and bullpen performance are key determinants of winning. The residual deviance of 67.5 on 446 degrees of freedom and estimated dispersion of 0.15 indicate that the Poisson model provides an excellent fit to the data.
 
 ::: {.panel-tabset}
 
 ## R
 
 ```{r}
-fit3 <- glm(W~ log(run_ratio) -1 + offset(log(G)),
-            family = poisson(),
-            data = TeamRuns2)
+fit_pois_full <- glm(W ~ . - WPct - G + offset(log(G)),
+                     family = poisson, data = TeamRuns2)
+fit_pois_step <- step(fit_pois_full, direction = "both", trace = 0)
+#summary(fit_pois_step)
+#cat("dispersion (resid dev / df):",
+#    deviance(fit_pois_step) / df.residual(fit_pois_step), "\n")
 
-summary(fit3)
-confint(fit3)
+# ---- Non-significant terms after stepwise ----
+coef_summary <- summary(fit_pois_step)$coefficients
+ns <- coef_summary[coef_summary[, 4] > 0.05, , drop = FALSE]
+#cat("Non-significant terms (p > 0.05):\n"); print(ns)
 
+# ---- Final model: drop those terms automatically ----
+drop_vars <- setdiff(rownames(ns), "(Intercept)")
+fit_pois_final <- if (length(drop_vars)) {
+  update(fit_pois_step, as.formula(paste(". ~ . -", paste(drop_vars, collapse = " - "))))
+} else fit_pois_step
+summary(fit_pois_final)
+
+# ---- AIC comparison AMONG POISSON MODELS ONLY (same likelihood) ----
+cat("\nPoisson AIC  —  Full:", round(AIC(fit_pois_full), 1),
+    " | Stepwise:", round(AIC(fit_pois_step), 1),
+    " | Final:",    round(AIC(fit_pois_final), 1), "\n")
+cat("dispersion (final):",
+    deviance(fit_pois_final) / df.residual(fit_pois_final), "\n")
+
+py$Teams <- reticulate::r_to_py(Teams)
 ```
 
 ## Python
 
 ```{python}
-X = TeamRuns2.select(pl.col("run_ratio").log()).to_numpy()
-y = TeamRuns2.select("W").to_numpy().flatten()
-offset = TeamRuns2.select(pl.col("G").log()).to_numpy().flatten()
+def fit_pois(terms, data):                 
+    n = data.height
 
-fit3 = sm.GLM(y, X,
-              family=sm.families.Poisson(),
-              offset=offset).fit()
+    # Design matrix: intercept + predictors
+    cols = data.select(terms).to_numpy() if terms else np.empty((n, 0))
+    X = np.column_stack([np.ones(n), cols])
 
-print(fit3.summary(yname="W", xname=["log(run_ratio)"]))
-print(fit3.conf_int())
+    # Response: number of wins
+    y = data["W"].to_numpy()
+
+    # Offset: log(G)
+    offset = np.log(data["G"].to_numpy())
+
+    try:
+        return sm.GLM(
+            y,
+            X,
+            family=sm.families.Poisson(),
+            offset=offset
+        ).fit()
+    except Exception:
+        return None
+
+
+#df = TeamRuns2   
+predictors = [c for c in df.columns if c not in ("WPct", "W", "G")]
+
+# Full Poisson model
+fit_pois_full = fit_pois(predictors, df)
+
+# Stepwise AIC Poisson model
+fit_pois_step, step_terms, hist = stepwise_aic(
+    df,
+    fixed_terms=[],
+    candidate_terms=predictors,
+    start_terms=predictors,
+    direction="both",
+    fit_fn=fit_pois
+)
+
+# Coefficient names match design matrix order
+names = ["Intercept"] + step_terms
+
+print(fit_pois_step.summary(xname=names, yname="W"))
+print(fit_pois_step.conf_int())
+
+
+# ---- Non-significant terms after stepwise ----
+pvals = np.asarray(fit_pois_step.pvalues)
+
+ns = [
+    nm for nm, pv in zip(names, pvals)
+    if nm != "Intercept" and pv > 0.05
+]
+
+print("Non-significant terms, p > 0.05:")
+print(ns)
+
+
+# ---- Final model: drop non-significant terms automatically ----
+final_terms = [t for t in step_terms if t not in ns]
+
+fit_pois_final = fit_pois(final_terms, df)
+
+print(
+    fit_pois_final.summary(
+        xname=["Intercept"] + final_terms,
+        yname="W"
+    )
+)
+
+
+# ---- AIC comparison among Poisson models only ----
+print(
+    f"\nPoisson AIC — Full: {fit_pois_full.aic:.1f}"
+    f" | Stepwise: {fit_pois_step.aic:.1f}"
+    f" | Final: {fit_pois_final.aic:.1f}"
+)
+
+# ---- Dispersion: residual deviance / residual df ----
+dispersion_final = fit_pois_final.deviance / fit_pois_final.df_resid
+
+print(f"dispersion (final): {dispersion_final:.4f}")
 ```
 
 :::
 
+
+
 2. 
 
+The final negative binomial regression model for the number of wins (W) with
+
+$$
+\log{E(W)}= \log(G) +\beta_0+\beta_1\log(RS)+\beta_2 ERA+\beta_3 SV,
+$$
+
+where $\log(G)$ is included as an offset. The selected model contains $\log(RS)$, (ERA), and (SV), and all three predictors are highly significant ((p<0.001)).
+
+The estimation of the dispersion parameter $\theta$, where
+
+$$
+\operatorname{Var}(W) = \mu + \frac{\mu^2}{\theta},
+$$
+produced the warning "Warning while fitting theta: iteration limit reached"(in R - "HessianInversionWarning: Inverting hessian failed, no bse or cov_params available" in Python) and yielded a very large estimate. This indicates that there is essentially no evidence of overdispersion in the data. Indeed, the Poisson model has an estimated dispersion of only 0.15, suggesting underdispersion. As $\theta\to\infty$, the negative binomial model approaches the Poisson model, which explains why the coefficient estimates are virtually identical and why the algorithm has difficulty estimating a finite value of $\theta$. Therefore, the Poisson model is more appropriate for these data.
 
 ::: {.panel-tabset}
 
 ## R
 
 ```{r}
-library(MASS)
+fit_nb_full <- MASS::glm.nb(W ~ . - WPct - G + offset(log(G)),
+                     data = TeamRuns2)
+fit_nb_step <- step(fit_nb_full, direction = "both", trace = 0)
+#summary(fit_nb_step)
+#cat("dispersion (resid dev / df):",
+#    deviance(fit_nb_step) / df.residual(fit_nb_step), "\n")
 
-fit_nb <- glm.nb(W ~ log(run_ratio) - 1 + offset(log(G)),
-                 data = TeamRuns2)
-summary(fit3)
-confint(fit3)
+# ---- Non-significant terms after stepwise ----
+coef_summary <- summary(fit_nb_step)$coefficients
+ns <- coef_summary[coef_summary[, 4] > 0.05, , drop = FALSE]
+#cat("Non-significant terms (p > 0.05):\n"); print(ns)
+
+# ---- Final model: drop those terms automatically ----
+drop_vars <- setdiff(rownames(ns), "(Intercept)")
+fit_nb_final <- if (length(drop_vars)) {
+  update(fit_nb_step, as.formula(paste(". ~ . -", paste(drop_vars, collapse = " - "))))
+} else fit_nb_step
+summary(fit_nb_final)
+
+# ---- AIC comparison AMONG POISSON MODELS ONLY (same likelihood) ----
+cat("\nPoisson AIC  —  Full:", round(AIC(fit_nb_full), 1),
+    " | Stepwise:", round(AIC(fit_nb_step), 1),
+    " | Final:",    round(AIC(fit_nb_final), 1), "\n")
+cat("dispersion (final):",
+    deviance(fit_nb_final) / df.residual(fit_nb_final), "\n")
+
+py$Teams <- reticulate::r_to_py(Teams)
 
 ```
 
 ## Python
 
 ```{python}
-X = TeamRuns2.select(pl.col("run_ratio").log()).to_numpy()
-y = TeamRuns2.select("W").to_numpy().flatten()
-offset = TeamRuns2.select(pl.col("G").log()).to_numpy().flatten()
+df = TeamRuns2   # polars DataFrame
 
-fit_nb = sm.GLM(y, X,
-                family=sm.families.NegativeBinomial(),
-                offset=offset).fit()
 
-print(fit_nb.summary(yname="W", xname=["log(run_ratio)"]))
-print(fit_nb.conf_int())
+def fit_nb(terms, data):
+    n = data.height
+
+    # intercept + predictors
+    cols = data.select(terms).to_numpy() if terms else np.empty((n, 0))
+    X = np.column_stack([np.ones(n), cols])
+
+    # response
+    y = data["W"].to_numpy()
+
+    # offset(log(G))
+    offset = np.log(data["G"].to_numpy())
+
+    try:
+        return sm.NegativeBinomial(
+            y,
+            X,
+            offset=offset,
+            loglike_method="nb2"
+        ).fit(disp=False, maxiter=200)
+    except Exception:
+        return None
+
+
+def nb_param_names(terms, fit):
+    names = ["Intercept"] + list(terms)
+
+    extra = len(fit.params) - len(names)
+
+    if extra == 1:
+        names += ["alpha"]
+    elif extra > 1:
+        names += [f"extra_{i}" for i in range(1, extra + 1)]
+
+    return names
+
+
+def nb_deviance(fit, data):
+    y = data["W"].to_numpy().astype(float)
+    mu = np.asarray(fit.predict()).astype(float)
+
+    alpha = float(fit.params[-1])
+    inv_alpha = 1.0 / alpha
+
+    term1 = np.zeros_like(y)
+    mask = y > 0
+    term1[mask] = y[mask] * np.log(y[mask] / mu[mask])
+
+    term2 = (y + inv_alpha) * np.log(
+        (y + inv_alpha) / (mu + inv_alpha)
+    )
+
+    return 2.0 * np.sum(term1 - term2)
+
+predictors = [c for c in df.columns if c not in ("WPct", "W", "G")]
+
+
+# ---- Full Negative Binomial model ----
+fit_nb_full = fit_nb(predictors, df)
+
+
+# ---- Stepwise AIC Negative Binomial model ----
+fit_nb_step, step_terms, hist = stepwise_aic(
+    df,
+    fixed_terms=[],
+    candidate_terms=predictors,
+    start_terms=predictors,
+    direction="both",
+    fit_fn=fit_nb
+)
+
+
+# ---- Optional stepwise summary ----
+step_names = nb_param_names(step_terms, fit_nb_step)
+
+# print(fit_nb_step.summary(xname=step_names, yname="W"))
+# print(
+#     "dispersion (resid dev / df):",
+#     nb_deviance(fit_nb_step, df) / fit_nb_step.df_resid
+# )
+
+
+# ---- Non-significant terms after stepwise ----
+coef_names = ["Intercept"] + step_terms
+
+# Ignore alpha when checking p-values
+coef_pvals = np.asarray(fit_nb_step.pvalues[:len(coef_names)])
+
+ns = [
+    nm for nm, pv in zip(coef_names, coef_pvals)
+    if nm != "Intercept" and pv > 0.05
+]
+
+# print("Non-significant terms, p > 0.05:")
+# print(ns)
+
+
+# ---- Final model: drop those terms automatically ----
+final_terms = [t for t in step_terms if t not in ns]
+
+fit_nb_final = fit_nb(final_terms, df) if len(ns) else fit_nb_step
+
+final_names = nb_param_names(final_terms, fit_nb_final)
+
+print(fit_nb_final.summary(xname=final_names, yname="W"))
+
+
+# ---- AIC comparison AMONG NEGATIVE BINOMIAL MODELS ONLY ----
+print(
+    f"\nNegative Binomial AIC — Full: {fit_nb_full.aic:.1f}"
+    f" | Stepwise: {fit_nb_step.aic:.1f}"
+    f" | Final: {fit_nb_final.aic:.1f}"
+)
+
+
+# ---- Dispersion: residual deviance / residual df ----
+dispersion_final = nb_deviance(fit_nb_final, df) / fit_nb_final.df_resid
+
+print(f"dispersion (final): {dispersion_final:.4f}")
+
+
+# ---- MASS::glm.nb theta equivalent ----
+alpha_final = float(fit_nb_final.params[-1])
+theta_final = 1.0 / alpha_final
+
+print(f"theta approx. like MASS::glm.nb: {theta_final:.4f}")
 ```
 
 :::
@@ -873,6 +1253,7 @@ had a modestly larger impact on game outcomes, possibly reflecting the
 higher-offense environment of the steroid era. The model fits well overall, 
 with residual deviance of $315.73$ on $800$ degrees of freedom compared to 
 null deviance of $2909.71$.
+
 ::: {.panel-tabset}
 
 ## R
