@@ -59,11 +59,26 @@ ENV NB_USER=${NB_USER}
 ENV NB_UID=${NB_UID}
 ENV HOME=/home/${NB_USER}
 
-RUN if ! id -u ${NB_USER} >/dev/null 2>&1; then \
-      useradd -m -s /bin/bash -u ${NB_UID} ${NB_USER}; \
-    fi && \
-    mkdir -p ${HOME} && \
-    chown -R ${NB_USER}:${NB_USER} ${HOME} /opt/r-reticulate
+ARG NB_USER=jovyan
+ARG NB_UID=1000
+
+ENV NB_USER=${NB_USER}
+ENV NB_UID=${NB_UID}
+ENV USER=${NB_USER}
+ENV HOME=/home/${NB_USER}
+
+RUN set -eux; \
+    EXISTING_USER="$(getent passwd ${NB_UID} | cut -d: -f1 || true)"; \
+    if [ -n "${EXISTING_USER}" ] && [ "${EXISTING_USER}" != "${NB_USER}" ]; then \
+      usermod -l "${NB_USER}" -d "${HOME}" -m "${EXISTING_USER}"; \
+      if getent group "${EXISTING_USER}" >/dev/null 2>&1; then \
+        groupmod -n "${NB_USER}" "${EXISTING_USER}"; \
+      fi; \
+    elif ! id -u "${NB_USER}" >/dev/null 2>&1; then \
+      useradd -m -s /bin/bash -u "${NB_UID}" "${NB_USER}"; \
+    fi; \
+    mkdir -p "${HOME}"; \
+    chown -R "${NB_USER}:${NB_USER}" "${HOME}" /opt/r-reticulate
 
 COPY . ${HOME}
 
