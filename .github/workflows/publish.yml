@@ -157,4 +157,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/nomistEco0532/my-r-env:latest
+          tags: ghcr.io/nomisteco0532/my-r-env:latest
